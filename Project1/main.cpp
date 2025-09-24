@@ -3,79 +3,138 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <mutex>
 
 std::atomic<bool> marquee_running{ false };
 std::thread marquee_thread;
+std::string marquee_text = "Hello World!";
+std::atomic<int> marquee_speed{ 200 };
+std::mutex io_mutex;
 
-void displayWelcomeMessage() {
-	std::cout << "Welcome to CSOPESY" << std::endl; 
-	std::cout << std::endl;
-	std::cout << "Group developer:" << std::endl;
-	std::cout << "Go, Michael Joseph" << std::endl;
-	std::cout << "Go, Michael Anthony" << std::endl;
-	std::cout << std::endl;
-	std::cout << "Version date: 9/12/25" << std::endl;
+void displayWelcomeMessage()
+{
+    std::cout << "Welcome to CSOPESY" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Group developer:" << std::endl;
+    std::cout << "Go, Michael Joseph" << std::endl;
+    std::cout << "Go, Michael Anthony" << std::endl;
+    std::cout << "Magaling, Zoe" << std::endl;
+    std::cout << "Uy, Matthew" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Version date: 9/12/25" << std::endl;
 }
 
 void marquee() {
-    const std::string text = "Hello World!";
-    std::string display = text + " ";
-
+    std::string display = marquee_text + " ";
     while (marquee_running.load(std::memory_order_relaxed)) {
-        std::cout << "\r" << display << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        {
+            std::lock_guard<std::mutex> lock(io_mutex);
+            std::cout << "\r" << display << std::flush;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(marquee_speed.load()));
         display = display.substr(1) + display[0];
     }
-    std::cout << "\r" << std::string(display.size(), ' ') << "\r" << std::flush; 
+    {
+        std::lock_guard<std::mutex> lock(io_mutex);
+        std::cout << "\r" << std::string(display.size(), ' ') << "\r" << std::flush;
+    }
 }
 
-void inputLoop() {
-	std::string input;
-	while (true) {
-		std::cout << "CSOPESY> ";
-		std::getline(std::cin, input);
-		if (input == "exit") {
-			if (marquee_running.load(std::memory_order_relaxed)) {
-				marquee_running.store(false, std::memory_order_relaxed);
-				if (marquee_thread.joinable()) {
-					marquee_thread.join();
-				}
-			}
-			break;
-		}
+void inputLoop()
+{
+    std::string input;
+    while (true)
+    {
+        {
+            std::lock_guard<std::mutex> lock(io_mutex);
+            std::cout << "CSOPESY> " << std::flush;
+        }
+        std::getline(std::cin, input);
+        if (input == "help")
+        {
+            std::cout << "Available commands:" << std::endl;
+            std::cout << "  help          - Shows this help menu" << std::endl;
+            std::cout << "  start_marquee - Starts the scrolling marquee" << std::endl;
+            std::cout << "  stop_marquee  - Stops the scrolling marquee" << std::endl;
+            std::cout << "  set_text <text> - Sets marquee text" << std::endl;
+            std::cout << "  set_speed <ms>  - Sets marquee speed in milliseconds" << std::endl;
+            std::cout << "  exit          - Exits the program" << std::endl;
+        }
 
-		else if (input == "start_marquee") {
-			if (marquee_running.load(std::memory_order_relaxed)) {
-				std::cout << "Marquee already running." << std::endl;
-			}
-			else {
-				marquee_running.store(true, std::memory_order_relaxed);
-				marquee_thread = std::thread(marquee);
-				std::cout << "Started marquee. Type 'stop_marquee' to stop." << std::endl;
-			}
-		}
-		else if (input == "stop_marquee") {
-			if (!marquee_running.load(std::memory_order_relaxed)) {
-				std::cout << "Marquee is not running." << std::endl;
-			}
-			else {
-				marquee_running.store(false, std::memory_order_relaxed);
-				if (marquee_thread.joinable()) {
-					marquee_thread.join();                
-				}
-				std::cout << "\nStopped marquee." << std::endl;
-			}
-		}
+        else if (input == "start_marquee")
+        {
+            if (marquee_running.load(std::memory_order_relaxed))
+            {
+                std::lock_guard<std::mutex> lock(io_mutex);
+                std::cout << "Marquee already running." << std::endl;
+            }
+            else
+            {
+                marquee_running.store(true, std::memory_order_relaxed);
+                marquee_thread = std::thread(marquee);
+                {
+                    std::lock_guard<std::mutex> lock(io_mutex);
+                    std::cout << "Started marquee. Type 'stop_marquee' to stop." << std::endl;
+                }
+            }
+        }
 
-		else if(input == "help") {
-			std::cout << "Available commands: help, start_marquee, exit" << std::endl;
-		}
-		else
-			std::cout << "You entered: " << input << std::endl;
-	}
+        else if (input == "stop_marquee")
+        {
+            if (!marquee_running.load(std::memory_order_relaxed))
+            {
+                std::lock_guard<std::mutex> lock(io_mutex);
+                std::cout << "Marquee is not running." << std::endl;
+            }
+            else
+            {
+                marquee_running.store(false, std::memory_order_relaxed);
+                if (marquee_thread.joinable())
+                {
+                    marquee_thread.join();
+                }
+                std::lock_guard<std::mutex> lock(io_mutex);
+                std::cout << "\nStopped marquee." << std::endl;
+            }
+        }
+
+        else if (input.rfind("set_text", 0) == 0)
+        {
+            marquee_text = input.substr(8);
+            std::lock_guard<std::mutex> lock(io_mutex);
+            std::cout << "Marquee text updated." << std::endl;
+        }
+
+        else if (input.rfind("set_speed", 0) == 0)
+        {
+            marquee_speed = std::stoi(input.substr(10));
+            std::lock_guard<std::mutex> lock(io_mutex);
+            std::cout << "Marquee speed updated." << std::endl;
+        }
+
+        else if (input == "exit")
+        {
+            if (marquee_running.load(std::memory_order_relaxed))
+            {
+                marquee_running.store(false, std::memory_order_relaxed);
+                if (marquee_thread.joinable())
+                {
+                    marquee_thread.join();
+                }
+            }
+            break;
+        }
+
+        else
+        {
+            std::cout << "Unknown command. Type 'help' for a list of commands." << std::endl;
+        }
+    }
 }
 
-int main() {
-	displayWelcomeMessage();
-	inputLoop();
+
+int main()
+{
+    displayWelcomeMessage();
+    inputLoop();
 }
