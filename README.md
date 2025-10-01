@@ -4,7 +4,7 @@ This project is a **console-based Marquee Operating System** written in C++ in p
 It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and configure a scrolling marquee text.
 
 
-## 👥 Group Members
+## Group Members
 - Go, Michael Joseph  
 - Go, Michael Anthony  
 - Magaling, Zoe  
