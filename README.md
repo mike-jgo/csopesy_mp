@@ -15,6 +15,7 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 
 ## 🤖 AI Usage Note
 
+---
 ## 📐 Build & Run Instructions
 ### Option 1: Run in Visual Studio
 1. **Open Visual Studio**.
@@ -32,4 +33,6 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 7. **Run the program**:  
    Press **Ctrl+F5** (Start Without Debugging).  
    The console window will open with the `CSOPESY>` prompt.
+
+---
 ## 🗂️ MVC
