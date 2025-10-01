@@ -15,7 +15,7 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 ---
 
 ## 🤖 AI Usage Note
-We acknowledge the use of AI in this project as a tool to help clarify C++ concepts and assist with debugging. Rest assured that we did not use it to generate ready-made code. All AI-assisted content was carefully reviewed, tested, and refined by our group to ensure full comprehension. 
+We acknowledge the use of AI in this project as a tool to help clarify C++ concepts and assist with debugging. Rest assured that we did not use it to generate ready-made code. Hence, all AI-assisted content was carefully reviewed, tested, and refined by our group to ensure full comprehension. 
 
 
 ---
