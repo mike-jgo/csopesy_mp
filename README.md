@@ -14,11 +14,6 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 
 ---
 
-## 🤖 AI Usage Note
-We acknowledge the use of AI in this project as a tool to help clarify C++ concepts. Rest assured that we did not use it to generate and copy ready-made code. Hence, all AI-assisted content was carefully reviewed, tested, and refined by our group to ensure full comprehension. 
-
-
----
 ## 📐 Build & Run Instructions
 ### Option 1: Run in Visual Studio
 1. **Open Visual Studio**.
@@ -38,6 +33,7 @@ We acknowledge the use of AI in this project as a tool to help clarify C++ conce
    The console window will open with the `CSOPESY>` prompt.
 
 ---
+
 ## 🗂️ MVC
 ```bash
 csopesy_mp/
