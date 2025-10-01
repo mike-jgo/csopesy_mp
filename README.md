@@ -36,3 +36,9 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 
 ---
 ## 🗂️ MVC
+```bash
+csopesy_mp/
+│
+├── Project1
+│   └── (main.cpp)
+│   └── (Project1.vcxproj)                 
