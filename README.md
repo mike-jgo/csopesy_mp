@@ -1,4 +1,4 @@
-# 💻 [Group 2] CSOPESY Machine Project — Marquee Console (C++)
+# 💻 [Group 2] Machine Project — Marquee Console (C++)
 
 This project is a **console-based Marquee** written in C++ in partial submission for CSOPESY.
 It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and configure a scrolling marquee text.
@@ -39,6 +39,9 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 ```bash
 csopesy_mp/
 │
-├── Project1
-│   └── (main.cpp)
-│   └── (Project1.vcxproj)                 
+├── Project1/
+│   └── (main.cpp)                         # This is where the main function is located
+│   └── (Project1.vcxproj)
+│   └── (Project1.vcxproj.filters)
+├── README.md/                             # Project overview and setup instructions (This file)
+
