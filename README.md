@@ -43,5 +43,6 @@ csopesy_mp/
 │   └── (main.cpp)                         # This is where the main function is located
 │   └── (Project1.vcxproj)
 │   └── (Project1.vcxproj.filters)
-├── README.md/                             # Project overview and setup instructions (This file)
+│ 
+└── README.md/                             # Project overview and setup instructions (This file)
 
