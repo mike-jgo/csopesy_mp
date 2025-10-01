@@ -1,6 +1,6 @@
-# 💻 [Group 2] CSOPESY Machine Project — Marquee OS (C++)
+# 💻 [Group 2] CSOPESY Machine Project — Marquee Console (C++)
 
-This project is a **console-based Marquee Operating System** written in C++ in partial submission for CSOPESY.
+This project is a **console-based Marquee** written in C++ in partial submission for CSOPESY.
 It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and configure a scrolling marquee text.
 
 ---
