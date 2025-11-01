@@ -127,6 +127,7 @@ void initializeCommand() {
         return;
     }
 
+	initialized = true;
     std::cout << "Configuration loaded successfully:\n";
     std::cout << "  num-cpu: " << systemConfig.num_cpu << "\n";
     std::cout << "  scheduler: " << systemConfig.scheduler << "\n";
