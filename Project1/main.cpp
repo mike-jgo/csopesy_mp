@@ -128,6 +128,10 @@ void inputLoop() {
         if (input.empty()) continue;
 
         std::vector<std::string> tokens = tokenize(input);
+        //Skip if the user entered only whitespace
+        if (tokens.empty()) {
+            continue;
+        }
         std::string cmd = tokens[0];
 
         if (mode == ConsoleMode::MAIN) {
