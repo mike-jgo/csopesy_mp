@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_map>
 #include <sstream>
+#include <fstream>
+#include <stdexcept>
 
 std::mutex io_mutex;
 
@@ -12,8 +14,26 @@ std::mutex io_mutex;
 enum class ConsoleMode { MAIN, PROCESS };
 ConsoleMode mode = ConsoleMode::MAIN;
 
+// Configuration structure
+struct Config {
+    int num_cpu = 0;
+    std::string scheduler;
+    int quantum_cycles = 0;
+    int batch_process_freq = 0;
+    int min_ins = 0;
+    int max_ins = 0;
+    int delays_per_exec = 0;
+    bool loaded = false;
+};
+Config systemConfig;
+
+
 // Initialization flag
 bool initialized = false;
+
+// Function prototypes
+bool generateDefaultConfig(const std::string& filename);
+bool loadConfigFile(const std::string& filename);
 
 // Simulated process screen state
 std::string current_process = "";
@@ -27,19 +47,97 @@ std::vector<std::string> tokenize(const std::string& input) {
     return tokens;
 }
 
+//Load config file and generate with default values if not found
+bool loadConfigFile(const std::string& filename) {
+    std::ifstream file(filename);
+
+    if (!file.is_open()) {
+        std::cout << "Warning: " << filename << " not found.\n";
+        std::cout << "Creating default configuration file...\n";
+
+        if (!generateDefaultConfig(filename)) {
+            std::cout << "Error: Failed to create default config.\n";
+            return false;
+        }
+
+        // Reopen the newly created file
+        file.open(filename);
+        if (!file.is_open()) {
+            std::cout << "Error: Could not open new config file.\n";
+            return false;
+        }
+    }
+
+    std::string key, value;
+    while (file >> key >> value) {
+        if (key == "num-cpu") systemConfig.num_cpu = std::stoi(value);
+        else if (key == "scheduler") systemConfig.scheduler = value;
+        else if (key == "quantum-cycles") systemConfig.quantum_cycles = std::stoi(value);
+        else if (key == "batch-process-freq") systemConfig.batch_process_freq = std::stoi(value);
+        else if (key == "min-ins") systemConfig.min_ins = std::stoi(value);
+        else if (key == "max-ins") systemConfig.max_ins = std::stoi(value);
+        else if (key == "delays-per-exec") systemConfig.delays_per_exec = std::stoi(value);
+    }
+
+    file.close();
+
+    if (systemConfig.num_cpu <= 0 || systemConfig.scheduler.empty()) {
+        std::cout << "Warning: Invalid or incomplete config. Regenerating default config.\n";
+        generateDefaultConfig(filename);
+        return loadConfigFile(filename);
+    }
+
+    systemConfig.loaded = true;
+    return true;
+}
+
+bool generateDefaultConfig(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cout << "Error: Could not create " << filename << std::endl;
+        return false;
+    }
+
+    file << "num-cpu 4\n";
+    file << "scheduler rr\n";
+    file << "quantum-cycles 2\n";
+    file << "batch-process-freq 3\n";
+    file << "min-ins 5\n";
+    file << "max-ins 10\n";
+    file << "delays-per-exec 1\n";
+    file.close();
+
+    std::cout << "Default config.txt generated with safe defaults.\n";
+    return true;
+}
+
 // === COMMANDS ===
 // All commands are just couts simulating behavior
 // initialize command
 void initializeCommand() {
-    if (initialized) {
+    if (systemConfig.loaded) {
         std::cout << "System already initialized.\n";
         return;
     }
-    std::cout << "Reading config.txt ... (simulated)\n";
-    std::cout << "Scheduler: RR | num-cpu: 4 | quantum-cycles: 2\n";
-    initialized = true;
-    std::cout << "System initialized successfully.\n";
+
+    std::cout << "Initializing system from config.txt...\n";
+
+    if (!loadConfigFile("config.txt")) {
+        std::cout << "Initialization failed. Please check config.txt.\n";
+        return;
+    }
+
+	initialized = true;
+    std::cout << "Configuration loaded successfully:\n";
+    std::cout << "  num-cpu: " << systemConfig.num_cpu << "\n";
+    std::cout << "  scheduler: " << systemConfig.scheduler << "\n";
+    std::cout << "  quantum-cycles: " << systemConfig.quantum_cycles << "\n";
+    std::cout << "  batch-process-freq: " << systemConfig.batch_process_freq << "\n";
+    std::cout << "  instruction range: " << systemConfig.min_ins << "-" << systemConfig.max_ins << "\n";
+    std::cout << "  delays-per-exec: " << systemConfig.delays_per_exec << "\n";
+    std::cout << "System initialization complete.\n\n";
 }
+
 
 // screen
 void handleScreenCommand(const std::vector<std::string>& args) {
