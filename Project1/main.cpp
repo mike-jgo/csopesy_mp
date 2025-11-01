@@ -7,6 +7,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
+#include <cstdlib>
 
 std::mutex io_mutex;
 
@@ -331,6 +332,15 @@ void processSmiCommand() {
     else {
         std::cout << "Logs: (none)\n";
     }
+
+    // After showing logs or variables
+    std::cout << "Instructions:\n";
+    for (size_t i = 0; i < proc->instructions.size(); ++i) {
+        std::cout << "  [" << i << "] " << proc->instructions[i];
+        if (i == proc->pc) std::cout << "  <-- current";
+        std::cout << "\n";
+    }
+
 
     // Finished message
     if (proc->state == ProcessState::FINISHED)
