@@ -29,6 +29,7 @@ struct Process {
     int pc = 0;
     std::vector<std::string> logs;
     std::unordered_map<std::string, int> variables;
+    int sleep_counter = 0;
 };
 
 // === Shared globals ===
