@@ -12,6 +12,8 @@ std::mutex io_mutex;
 
 // CLI mode tracker
 enum class ConsoleMode { MAIN, PROCESS };
+enum class ProcessState { READY, RUNNING, SLEEPING, FINISHED };
+
 ConsoleMode mode = ConsoleMode::MAIN;
 
 // Configuration structure
@@ -27,11 +29,47 @@ struct Config {
 };
 Config systemConfig;
 
+// Process structure
+struct Process {
+    std::string name;
+    int pid;
+    ProcessState state;
+    std::vector<std::string> instructions;
+    int pc = 0; 
+    std::vector<std::string> logs; // collected outputs from PRINT
+    std::unordered_map<std::string, int> variables; // current variable values
+};
+
+
+// Process table
+std::vector<Process> processTable;
+int nextPID = 1;
+
+// Find process by name
+Process* findProcess(const std::string& name) {
+    for (auto& p : processTable) {
+        if (p.name == name)
+            return &p;
+    }
+    return nullptr;
+}
+
+// Generate dummy instructions
+std::vector<std::string> generateDummyInstructions(int count) {
+    std::vector<std::string> ins;
+    static std::vector<std::string> pool = {
+        "DECLARE(x, 5)", "ADD(y, x, 2)", "SUBTRACT(x, y, 1)",
+        "PRINT('Hello world!')", "SLEEP(2)"
+    };
+    for (int i = 0; i < count; ++i)
+        ins.push_back(pool[rand() % pool.size()]);
+    return ins;
+}
 
 // Initialization flag
 bool initialized = false;
 
-// Function prototypes
+// === CONFIG FILE HANDLING ===
 bool generateDefaultConfig(const std::string& filename);
 bool loadConfigFile(const std::string& filename);
 
@@ -142,10 +180,9 @@ void initializeCommand() {
 // screen
 void handleScreenCommand(const std::vector<std::string>& args) {
     if (!initialized) {
-        std::cout << "Error: System not initialized.\n";
+        std::cout << "Error: System not initialized. Type 'initialize' first.\n";
         return;
     }
-
     if (args.size() == 1) {
         std::cout << "Usage:\n"
             << "  screen -s <process_name>\n"
@@ -153,24 +190,69 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             << "  screen -ls\n";
         return;
     }
-
     std::string flag = args[1];
 
+    // --- Create new process ---
     if (flag == "-s" && args.size() >= 3) {
-        current_process = args[2];
-        std::cout << "Created new process: " << current_process << "\n";
-        std::cout << "Attaching to " << current_process << "...\n";
+        std::string name = args[2];
+        if (findProcess(name)) {
+            std::cout << "Process " << name << " already exists.\n";
+            return;
+        }
+        Process newProc;
+        newProc.name = name;
+        newProc.pid = nextPID++;
+        newProc.state = ProcessState::READY;
+        int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
+        newProc.instructions = generateDummyInstructions(insCount);
+
+        processTable.push_back(newProc);
+
+        std::cout << "Created new process: " << name << " (PID " << newProc.pid << ")\n";
+        std::cout << "Attached to process screen.\n";
+
         mode = ConsoleMode::PROCESS;
+        current_process = name;
     }
+    // --- Reattach to an existing process ---
     else if (flag == "-r" && args.size() >= 3) {
-        current_process = args[2];
-        std::cout << "Reattaching to process: " << current_process << "\n";
+        std::string name = args[2];
+        Process* p = findProcess(name);
+        if (!p) {
+            std::cout << "Process " << name << " not found.\n";
+            return;
+        }
+
+        if (p->state == ProcessState::FINISHED) {
+            std::cout << "Process " << name << " already finished.\n";
+            return;
+        }
+
+        std::cout << "Reattached to process " << name << " (PID " << p->pid << ")\n";
         mode = ConsoleMode::PROCESS;
+        current_process = name;
     }
+
+    // --- List all processes ---
     else if (flag == "-ls") {
-        std::cout << "Listing all processes (simulated):\n";
-        std::cout << "  p01 [RUNNING]\n  p02 [SLEEPING]\n  p03 [FINISHED]\n";
+        if (processTable.empty()) {
+            std::cout << "No processes created.\n";
+            return;
+        }
+
+        std::cout << "Process List:\n";
+        for (const auto& p : processTable) {
+            std::string stateStr;
+            switch (p.state) {
+            case ProcessState::READY: stateStr = "READY"; break;
+            case ProcessState::RUNNING: stateStr = "RUNNING"; break;
+            case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
+            case ProcessState::FINISHED: stateStr = "FINISHED"; break;
+            }
+            std::cout << "  " << p.name << " [PID " << p.pid << "] - " << stateStr << "\n";
+        }
     }
+
     else {
         std::cout << "Invalid screen command.\n";
     }
@@ -207,11 +289,56 @@ void reportUtilCommand() {
 
 // process-smi inside process screen
 void processSmiCommand() {
-    std::cout << "Process: " << current_process << "\n";
-    std::cout << "State: RUNNING\n";
-    std::cout << "Instructions executed: 5/12\n";
-    std::cout << "Variables in memory: x=10, y=20\n";
+    Process* proc = findProcess(current_process);
+    if (!proc) {
+        std::cout << "Error: Process " << current_process << " not found.\n";
+        return;
+    }
+
+    std::cout << "\n=== Process SMI ===\n";
+    std::cout << "Name: " << proc->name << "\n";
+    std::cout << "PID: " << proc->pid << "\n";
+
+    // Translate enum to string
+    std::string stateStr;
+    switch (proc->state) {
+    case ProcessState::READY: stateStr = "READY"; break;
+    case ProcessState::RUNNING: stateStr = "RUNNING"; break;
+    case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
+    case ProcessState::FINISHED: stateStr = "FINISHED"; break;
+    }
+    std::cout << "State: " << stateStr << "\n";
+
+    // Instruction progress
+    std::cout << "Instruction progress: " << proc->pc << " / " << proc->instructions.size() << "\n";
+
+    // Display variables
+    if (!proc->variables.empty()) {
+        std::cout << "Variables:\n";
+        for (const auto& [var, val] : proc->variables)
+            std::cout << "  " << var << " = " << val << "\n";
+    }
+    else {
+        std::cout << "Variables: (none)\n";
+    }
+
+    // Display logs
+    if (!proc->logs.empty()) {
+        std::cout << "Logs:\n";
+        for (const auto& log : proc->logs)
+            std::cout << "  " << log << "\n";
+    }
+    else {
+        std::cout << "Logs: (none)\n";
+    }
+
+    // Finished message
+    if (proc->state == ProcessState::FINISHED)
+        std::cout << "Process has finished execution.\n";
+
+    std::cout << "=====================\n\n";
 }
+
 
 // === INPUT LOOP ===
 void inputLoop() {
