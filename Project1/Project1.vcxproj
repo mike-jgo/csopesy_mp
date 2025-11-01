@@ -128,7 +128,7 @@
     <ClCompile Include="emulator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Globals.h" />
+    <ClInclude Include="globals.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
