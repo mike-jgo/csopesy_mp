@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <stdexcept>
+#include <regex>
+#include <thread>
+#include <chrono>
 
 // === Global variables ===
 std::mutex io_mutex;
@@ -89,6 +92,102 @@ Process* findProcess(const std::string& name) {
     return nullptr;
 }
 
+// Resolve a token to either an integer or a variable value
+int resolveValue(Process& p, const std::string& token) {
+    try {
+        return std::stoi(token);
+    }
+    catch (...) {
+       
+    }
+
+    if (!p.variables.count(token)) {
+        p.variables[token] = 0;
+    }
+    return p.variables[token];
+}
+
+// Execute a single instruction for a process
+void executeInstruction(Process& p) {
+    if (p.state == ProcessState::FINISHED) return;
+    if (p.pc >= p.instructions.size()) {
+        p.state = ProcessState::FINISHED;
+        return;
+    }
+
+    std::string instr = p.instructions[p.pc];
+
+    // === DECLARE(var, value) ===
+    if (instr.rfind("DECLARE", 0) == 0) {
+        std::regex re(R"(DECLARE\((\w+),\s*(-?\d+)\))");
+        std::smatch match;
+        if (std::regex_match(instr, match, re)) {
+            std::string var = match[1];
+            int value = std::stoi(match[2]);
+            p.variables[var] = value;
+        }
+    }
+
+    // === ADD(var1, var2/value, var3/value) ===
+    else if (instr.rfind("ADD", 0) == 0) {
+        std::regex re(R"(ADD\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
+        std::smatch match;
+        if (std::regex_match(instr, match, re)) {
+            std::string target = match[1];
+            std::string op1 = match[2];
+            std::string op2 = match[3];
+
+            int val1 = resolveValue(p, op1);
+            int val2 = resolveValue(p, op2);
+            p.variables[target] = val1 + val2;
+        }
+    }
+
+    // === SUBTRACT(var1, var2/value, var3/value) ===
+    else if (instr.rfind("SUBTRACT", 0) == 0) {
+        std::regex re(R"(SUBTRACT\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
+        std::smatch match;
+        if (std::regex_match(instr, match, re)) {
+            std::string target = match[1];
+            std::string op1 = match[2];
+            std::string op2 = match[3];
+
+            int val1 = resolveValue(p, op1);
+            int val2 = resolveValue(p, op2);
+            p.variables[target] = val1 - val2;
+        }
+    }
+
+    // === PRINT('message') ===
+    else if (instr.rfind("PRINT", 0) == 0) {
+        std::regex re(R"(PRINT\('([^']+)'\))");
+        std::smatch match;
+        if (std::regex_match(instr, match, re)) {
+            std::string message = match[1];
+            p.logs.push_back(message);
+        }
+    }
+
+    // === SLEEP(n) ===
+    else if (instr.rfind("SLEEP", 0) == 0) {
+        std::regex re(R"(SLEEP\((\d+)\))");
+        std::smatch match;
+        if (std::regex_match(instr, match, re)) {
+            int n = std::stoi(match[1]);
+            p.sleep_counter = n;
+            p.state = ProcessState::SLEEPING;
+            std::this_thread::sleep_for(std::chrono::milliseconds(200 * n));
+        }
+    }
+
+    // Advance PC
+    p.pc++;
+    if (p.pc >= p.instructions.size()) {
+        p.state = ProcessState::FINISHED;
+    }
+}
+
+// Generate dummy instructions for a process 
 std::vector<std::string> generateDummyInstructions(int count) {
     std::vector<std::string> ins;
     static std::vector<std::string> pool = {
@@ -338,6 +437,15 @@ void inputLoop() {
         }
         else if (mode == ConsoleMode::PROCESS) {
             if (cmd == "process-smi") processSmiCommand();
+            else if (cmd == "step") {
+                Process* p = findProcess(current_process);
+                if (!p) {
+                    std::cout << "No active process.\n";
+                    continue;
+                }
+                executeInstruction(*p);
+                std::cout << "Executed instruction " << p->pc << " for process " << p->name << ".\n";
+            }
             else if (cmd == "exit") {
                 std::cout << "Exiting process screen...\n";
                 mode = ConsoleMode::MAIN;
