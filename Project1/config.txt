@@ -1,7 +1,7 @@
 num-cpu 4
 scheduler rr
-quantum-cycles 2
-batch-process-freq 3
-min-ins 5
-max-ins 10
-delays-per-exec 1
+quantum-cycles 5
+batch-process-freq 1
+min-ins 100
+max-ins 500
+delays-per-exec 0
