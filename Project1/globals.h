@@ -30,7 +30,17 @@ struct Process {
     std::vector<std::string> logs;
     std::unordered_map<std::string, int> variables;
     int sleep_counter = 0;
+    int quantum_used = 0;
+    bool needs_cpu = true;
 };
+
+// === Core structure ===
+struct Core {
+    Process* cur = nullptr;
+    int q_left = 0;            // quantum ticks remaining
+    int delay_left = 0;        // busy-wait ticks after an instruction
+};
+
 
 // === Shared globals ===
 extern std::mutex io_mutex;
@@ -40,6 +50,8 @@ extern ConsoleMode mode;
 extern std::vector<Process> processTable;
 extern int nextPID;
 extern std::string current_process;
+extern unsigned long long global_tick;
+
 
 // === Function declarations ===
 void inputLoop();
