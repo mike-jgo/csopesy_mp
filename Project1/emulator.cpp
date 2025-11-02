@@ -8,6 +8,10 @@
 #include <regex>
 #include <thread>
 #include <chrono>
+#include <atomic>
+#include <iomanip>
+#include <deque>
+
 
 // === Global variables ===
 std::mutex io_mutex;
@@ -17,6 +21,10 @@ ConsoleMode mode = ConsoleMode::MAIN;
 std::vector<Process> processTable;
 int nextPID = 1;
 std::string current_process = "";
+std::atomic<bool> schedulerRunning{ false };
+std::thread schedulerThread;
+unsigned long long global_tick = 0;
+
 
 // === Utility functions ===
 std::vector<std::string> tokenize(const std::string& input) {
@@ -176,7 +184,6 @@ void executeInstruction(Process& p) {
             int n = std::stoi(match[1]);
             p.sleep_counter = n;
             p.state = ProcessState::SLEEPING;
-            std::this_thread::sleep_for(std::chrono::milliseconds(200 * n));
         }
     }
 
@@ -290,7 +297,31 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             return;
         }
 
-        std::cout << "Process List:\n";
+        int totalCores = systemConfig.num_cpu;
+        int runningCount = 0, finishedCount = 0, readyCount = 0, sleepingCount = 0;
+
+        for (const auto& p : processTable) {
+            switch (p.state) {
+            case ProcessState::RUNNING:   runningCount++; break;
+            case ProcessState::READY:     readyCount++; break;
+            case ProcessState::SLEEPING:  sleepingCount++; break;
+            case ProcessState::FINISHED:  finishedCount++; break;
+            }
+        }
+
+        float utilization = (totalCores > 0)
+            ? (float)runningCount / totalCores * 100.0f
+            : 0.0f;
+
+        std::cout << "\n=== CPU SUMMARY ===\n";
+        std::cout << "CPU Utilization: " << utilization << "%\n";
+        std::cout << "Cores Used: " << runningCount << "/" << totalCores << "\n";
+        std::cout << "Cores Available: " << (totalCores - runningCount) << "\n";
+        std::cout << "Ready: " << readyCount
+            << " | Sleeping: " << sleepingCount
+            << " | Finished: " << finishedCount << "\n";
+
+        std::cout << "\n=== PROCESS TABLE ===\n";
         for (const auto& p : processTable) {
             std::string stateStr;
             switch (p.state) {
@@ -299,34 +330,166 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
             case ProcessState::FINISHED: stateStr = "FINISHED"; break;
             }
-            std::cout << "  " << p.name << " [PID " << p.pid << "] - " << stateStr << "\n";
+            std::cout << "  " << p.name << " [PID " << p.pid << "] - "
+                << stateStr << " (" << p.pc << "/" << p.instructions.size() << ")\n";
         }
+        std::cout << "=====================\n\n";
+    }
+}
+
+// Trace function
+void logInstructionTrace(Process& p, const std::string& instr) {
+    std::ofstream trace("csopesy-trace.txt", std::ios::app);
+    if (!trace.is_open()) return;
+
+    // Real timestamp
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf{};
+    #ifdef _WIN32
+        localtime_s(&tm_buf, &now_time);
+    #else
+        localtime_r(&now_time, &tm_buf);
+    #endif
+
+    std::ostringstream timestamp;
+    timestamp << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
+
+    // Process state as string
+    std::string stateStr;
+    switch (p.state) {
+    case ProcessState::READY: stateStr = "READY"; break;
+    case ProcessState::RUNNING: stateStr = "RUNNING"; break;
+    case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
+    case ProcessState::FINISHED: stateStr = "FINISHED"; break;
     }
 
-    else {
-        std::cout << "Invalid screen command.\n";
-    }
+    // Combined log entry
+    trace << "[" << timestamp.str() << "] "
+        << "[Tick " << global_tick << "] "
+        << p.name << " [PID " << p.pid << "] pc="
+        << p.pc << "/" << p.instructions.size()
+        << " -> " << instr
+        << " | State=" << stateStr << "\n";
+
+    trace.close();
 }
 
 // scheduler-start
+// === Single-core round robin scheduler ===
 void schedulerStartCommand() {
     if (!initialized) {
-        std::cout << "Error: System not initialized.\n";
+        std::cout << "Error: System not initialized. Type 'initialize' first.\n";
         return;
     }
-    std::cout << "Scheduler started (simulated). Generating dummy processes...\n";
+
+    if (schedulerRunning.load()) {
+        std::cout << "Scheduler already running.\n";
+        return;
+    }
+
+    std::cout << "Starting single-core scheduler...\n";
+    schedulerRunning.store(true);
+
+    schedulerThread = std::thread([]() {
+        std::deque<Process*> readyQueue;
+
+        // Initialize ready queue
+        for (auto& p : processTable)
+            if (p.state == ProcessState::READY)
+                readyQueue.push_back(&p);
+
+        unsigned long long tick = 0;
+
+        while (schedulerRunning.load()) {
+            tick++;
+            global_tick = tick;
+
+            // --- Wake sleeping processes ---
+            for (auto& p : processTable) {
+                if (p.state == ProcessState::SLEEPING) {
+                    if (p.sleep_counter > 0) p.sleep_counter--;
+                    if (p.sleep_counter == 0) {
+                        p.state = ProcessState::READY;
+                        readyQueue.push_back(&p);
+                    }
+                }
+            }
+
+            // --- If no ready process, idle ---
+            if (readyQueue.empty()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                continue;
+            }
+
+            // --- Pick next ready process (RR) ---
+            Process* p = readyQueue.front();
+            readyQueue.pop_front();
+
+            // Assign a full quantum
+            int remainingQuantum = systemConfig.quantum_cycles;
+            p->state = ProcessState::RUNNING;
+
+            // --- Run up to N ticks or until sleep/finish ---
+            while (schedulerRunning.load() && remainingQuantum > 0) {
+                tick++;
+                global_tick = tick;
+
+                // Execute one instruction per tick
+                size_t before_pc = p->pc;
+                executeInstruction(*p);
+
+                if (p->pc > before_pc)
+                    logInstructionTrace(*p, p->instructions[p->pc - 1]);
+
+                // Handle process end or sleep
+                if (p->state == ProcessState::FINISHED || p->pc >= p->instructions.size()) {
+                    p->state = ProcessState::FINISHED;
+                    break;
+                }
+                if (p->state == ProcessState::SLEEPING) {
+                    // Yield CPU immediately if process sleeps
+                    break;
+                }
+
+                remainingQuantum--;
+
+                // Apply busy-wait delay (logical ticks)
+                for (int i = 0; i < systemConfig.delays_per_exec; ++i) {
+                    tick++;
+                    global_tick = tick;
+                }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+
+            // --- Return to ready queue if not finished/sleeping ---
+            if (p->state == ProcessState::RUNNING) {
+                p->state = ProcessState::READY;
+                readyQueue.push_back(p);
+            }
+        }
+
+        schedulerRunning.store(false);
+        std::cout << "\nScheduler stopped.\n";
+        });
+
+    schedulerThread.detach();
 }
+
 
 // scheduler-stop
 void schedulerStopCommand() {
-    if (!initialized) {
-        std::cout << "Error: System not initialized.\n";
+    if (!schedulerRunning.load()) {
+        std::cout << "Scheduler is not running.\n";
         return;
     }
-    std::cout << "Scheduler stopped.\n";
+
+    schedulerRunning.store(false);
+    std::cout << "Stopping scheduler...\n";
 }
 
-// report-util
+// report-util (simulated)
 void reportUtilCommand() {
     if (!initialized) {
         std::cout << "Error: System not initialized.\n";
@@ -382,15 +545,6 @@ void processSmiCommand() {
         std::cout << "Logs: (none)\n";
     }
 
-    // After showing logs or variables
-    std::cout << "Instructions:\n";
-    for (size_t i = 0; i < proc->instructions.size(); ++i) {
-        std::cout << "  [" << i << "] " << proc->instructions[i];
-        if (i == proc->pc) std::cout << "  <-- current";
-        std::cout << "\n";
-    }
-
-
     // Finished message
     if (proc->state == ProcessState::FINISHED)
         std::cout << "Process has finished execution.\n";
@@ -432,6 +586,17 @@ void inputLoop() {
             else if (cmd == "scheduler-start") schedulerStartCommand();
             else if (cmd == "scheduler-stop") schedulerStopCommand();
             else if (cmd == "report-util") reportUtilCommand();
+            else if (cmd == "report-trace") {
+                std::ifstream trace("csopesy-trace.txt");
+                if (!trace.is_open()) {
+                    std::cout << "No trace log found.\n";
+                    continue;
+                }
+                std::cout << "\n=== EXECUTION TRACE ===\n";
+                std::string line;
+                while (std::getline(trace, line)) std::cout << line << "\n";
+                std::cout << "=======================\n";
+            }
             else if (cmd == "exit") break;
             else std::cout << "Unknown command. Type 'help'.\n";
         }
