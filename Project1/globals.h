@@ -3,6 +3,10 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
+#include <memory>  // for std::unique_ptr
+
+// Forward declaration to break circular dependency
+class Instruction;
 
 // === Enums ===
 enum class ConsoleMode { MAIN, PROCESS };
@@ -23,24 +27,60 @@ struct Config {
 // === Process structure ===
 struct Process {
     std::string name;
-    int pid;
-    ProcessState state;
-    std::vector<std::string> instructions;
+    int pid = 0;
+    ProcessState state = ProcessState::READY;
+    std::vector<std::unique_ptr<Instruction>> instructions;
     int pc = 0;
     std::vector<std::string> logs;
     std::unordered_map<std::string, int> variables;
     int sleep_counter = 0;
     int quantum_used = 0;
     bool needs_cpu = true;
+
+    // Explicitly declare move constructor and assignment
+    Process(Process&& other) noexcept
+        : name(std::move(other.name)),
+        pid(other.pid),
+        state(other.state),
+        instructions(std::move(other.instructions)),
+        pc(other.pc),
+        logs(std::move(other.logs)),
+        variables(std::move(other.variables)),
+        sleep_counter(other.sleep_counter),
+        quantum_used(other.quantum_used),
+        needs_cpu(other.needs_cpu) {
+    }
+
+    Process& operator=(Process&& other) noexcept {
+        if (this != &other) {
+            name = std::move(other.name);
+            pid = other.pid;
+            state = other.state;
+            instructions = std::move(other.instructions);
+            pc = other.pc;
+            logs = std::move(other.logs);
+            variables = std::move(other.variables);
+            sleep_counter = other.sleep_counter;
+            quantum_used = other.quantum_used;
+            needs_cpu = other.needs_cpu;
+        }
+        return *this;
+    }
+
+    // Disable copy
+    Process(const Process&) = delete;
+    Process& operator=(const Process&) = delete;
+
+    Process() = default;
 };
+
 
 // === Core structure ===
 struct Core {
     Process* cur = nullptr;
-    int q_left = 0;            // quantum ticks remaining
-    int delay_left = 0;        // busy-wait ticks after an instruction
+    int q_left = 0;
+    int delay_left = 0;
 };
-
 
 // === Shared globals ===
 extern std::mutex io_mutex;
@@ -51,7 +91,6 @@ extern std::vector<Process> processTable;
 extern int nextPID;
 extern std::string current_process;
 extern unsigned long long global_tick;
-
 
 // === Function declarations ===
 void inputLoop();

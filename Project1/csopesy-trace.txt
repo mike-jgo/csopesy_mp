@@ -610,3 +610,5 @@
 [2025-11-02 13:01:11] [Tick 796] p01 [PID 1] pc=330/332 -> SUBTRACT(x, y, 1) | State=RUNNING
 [2025-11-02 13:01:11] [Tick 797] p01 [PID 1] pc=331/332 -> DECLARE(x, 5) | State=RUNNING
 [2025-11-02 13:01:11] [Tick 798] p01 [PID 1] pc=332/332 -> DECLARE(x, 5) | State=FINISHED
+[2025-11-04 00:57:23] [Tick 0] p01 [PID 1] pc=0/308 -> DECLARE(x, 5) | State=READY
+[2025-11-04 00:57:28] [Tick 0] p01 [PID 1] pc=1/308 -> SUBTRACT(x, y, 1) | State=READY

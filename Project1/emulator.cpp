@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "instruction.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -12,6 +13,8 @@
 #include <iomanip>
 #include <deque>
 
+// == Forward Declaration ==
+void logInstructionTrace(Process& p, const std::string& instr);
 
 // === Global variables ===
 std::mutex io_mutex;
@@ -100,99 +103,22 @@ Process* findProcess(const std::string& name) {
     return nullptr;
 }
 
-// Resolve a token to either an integer or a variable value
-int resolveValue(Process& p, const std::string& token) {
-    try {
-        return std::stoi(token);
-    }
-    catch (...) {
-       
-    }
-
-    if (!p.variables.count(token)) {
-        p.variables[token] = 0;
-    }
-    return p.variables[token];
-}
-
 // Execute a single instruction for a process
 void executeInstruction(Process& p) {
-    if (p.state == ProcessState::FINISHED) return;
-    if (p.pc >= p.instructions.size()) {
+    if (p.state == ProcessState::FINISHED || p.pc >= p.instructions.size()) {
         p.state = ProcessState::FINISHED;
         return;
     }
 
-    std::string instr = p.instructions[p.pc];
+    auto& instr = p.instructions[p.pc];
+    instr->execute(p);
+    logInstructionTrace(p, instr->toString());
 
-    // === DECLARE(var, value) ===
-    if (instr.rfind("DECLARE", 0) == 0) {
-        std::regex re(R"(DECLARE\((\w+),\s*(-?\d+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string var = match[1];
-            int value = std::stoi(match[2]);
-            p.variables[var] = value;
-        }
-    }
-
-    // === ADD(var1, var2/value, var3/value) ===
-    else if (instr.rfind("ADD", 0) == 0) {
-        std::regex re(R"(ADD\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string target = match[1];
-            std::string op1 = match[2];
-            std::string op2 = match[3];
-
-            int val1 = resolveValue(p, op1);
-            int val2 = resolveValue(p, op2);
-            p.variables[target] = val1 + val2;
-        }
-    }
-
-    // === SUBTRACT(var1, var2/value, var3/value) ===
-    else if (instr.rfind("SUBTRACT", 0) == 0) {
-        std::regex re(R"(SUBTRACT\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string target = match[1];
-            std::string op1 = match[2];
-            std::string op2 = match[3];
-
-            int val1 = resolveValue(p, op1);
-            int val2 = resolveValue(p, op2);
-            p.variables[target] = val1 - val2;
-        }
-    }
-
-    // === PRINT('message') ===
-    else if (instr.rfind("PRINT", 0) == 0) {
-        std::regex re(R"(PRINT\('([^']+)'\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string message = match[1];
-            p.logs.push_back(message);
-        }
-    }
-
-    // === SLEEP(n) ===
-    else if (instr.rfind("SLEEP", 0) == 0) {
-        std::regex re(R"(SLEEP\((\d+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            int n = std::stoi(match[1]);
-            p.sleep_counter = n;
-            p.state = ProcessState::SLEEPING;
-        }
-    }
-
-    // Advance PC
     p.pc++;
-    if (p.pc >= p.instructions.size()) {
+    if (p.pc >= p.instructions.size())
         p.state = ProcessState::FINISHED;
-    }
 }
+
 
 // Generate dummy instructions for a process 
 std::vector<std::string> generateDummyInstructions(int count) {
@@ -261,9 +187,14 @@ void handleScreenCommand(const std::vector<std::string>& args) {
         newProc.pid = nextPID++;
         newProc.state = ProcessState::READY;
         int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
-        newProc.instructions = generateDummyInstructions(insCount);
+        std::vector<std::string> dummy = generateDummyInstructions(insCount);
+        for (const auto& line : dummy) {
+            auto instr = parseInstruction(line);
+            if (instr) newProc.instructions.push_back(std::move(instr));
+        }
 
-        processTable.push_back(newProc);
+
+        processTable.push_back(std::move(newProc));
 
         std::cout << "Created new process: " << name << " (PID " << newProc.pid << ")\n";
         std::cout << "Attached to process screen.\n";
@@ -440,7 +371,7 @@ void schedulerStartCommand() {
                 executeInstruction(*p);
 
                 if (p->pc > before_pc)
-                    logInstructionTrace(*p, p->instructions[p->pc - 1]);
+                    logInstructionTrace(*p, p->instructions[p->pc - 1]->toString());
 
                 // Handle process end or sleep
                 if (p->state == ProcessState::FINISHED || p->pc >= p->instructions.size()) {
@@ -543,6 +474,20 @@ void processSmiCommand() {
     }
     else {
         std::cout << "Logs: (none)\n";
+    }
+
+    // Display instructions
+    if (!proc->instructions.empty()) {
+        std::cout << "Instructions:\n";
+        for (size_t i = 0; i < proc->instructions.size(); ++i) {
+            std::cout << "  [" << i << "] ";
+            if (i == proc->pc)
+                std::cout << "-> ";  // indicates the current instruction
+            std::cout << proc->instructions[i]->toString() << "\n";
+        }
+    }
+    else {
+        std::cout << "Instructions: (none)\n";
     }
 
     // Finished message
