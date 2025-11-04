@@ -40,6 +40,45 @@ std::vector<std::string> tokenize(const std::string& input) {
     return tokens;
 }
 
+std::string trim(const std::string& str) {
+    const auto first = str.find_first_not_of(" \t\n\r");
+    if (first == std::string::npos) return "";
+    const auto last = str.find_last_not_of(" \t\n\r");
+    return str.substr(first, last - first + 1);
+}
+
+
+std::vector<std::string> expandForLoops(const std::vector<std::string>& instructions) {
+    std::vector<std::string> result;
+    std::regex forRegex(R"(FOR\(\[([^\]]+)\],\s*(\d+)\))");
+
+    for (const auto& rawInstr : instructions) {
+        std::string instr = trim(rawInstr);
+        std::smatch match;
+        if (std::regex_match(instr, match, forRegex)) {
+            std::string body = match[1];
+            int repeats = std::stoi(match[2]);
+
+            std::vector<std::string> innerInstrs;
+            std::stringstream ss(body);
+            std::string temp;
+            while (std::getline(ss, temp, ';')) {
+                std::string innerTrimmed = trim(temp);
+                if (!innerTrimmed.empty()) innerInstrs.push_back(innerTrimmed);
+            }
+
+            std::vector<std::string> expandedInner = expandForLoops(innerInstrs);
+            for (int i = 0; i < repeats; ++i)
+                result.insert(result.end(), expandedInner.begin(), expandedInner.end());
+        }
+        else if (!instr.empty()) {
+            result.push_back(instr);
+        }
+    }
+
+    return result;
+}
+
 // === Config handling ===
 bool generateDefaultConfig(const std::string& filename) {
     std::ofstream file(filename);
@@ -207,43 +246,11 @@ void executeInstruction(Process& p) {
 
     // === FOR([...], repeats) ===
     else if (instr.rfind("FOR", 0) == 0) {
-        std::regex re(R"(FOR\(\[([^\]]+)\],\s*(\d+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string body = match[1];
-            int repeats = std::stoi(match[2]);
-
-            // Split the inner instruction list
-            std::vector<std::string> innerInstrs;
-            std::stringstream ss(body);
-            std::string temp;
-            while (std::getline(ss, temp, ';')) {
-                std::string trimmed = std::regex_replace(temp, std::regex(R"(^\s+|\s+$)"), "");
-                if (!trimmed.empty()) innerInstrs.push_back(trimmed);
-            }
-
-            // Expand the FOR loop into repeated instructions with markers
-            std::vector<std::string> expanded;
-            std::ostringstream beginMarker;
-            beginMarker << "// BEGIN FOR (" << repeats << "x)";
-            expanded.push_back(beginMarker.str());
-
-            for (int i = 0; i < repeats; ++i) {
-                for (const auto& inner : innerInstrs) {
-                    std::ostringstream labeled;
-                    labeled << "[FOR iter " << (i + 1) << "] " << inner;
-                    expanded.push_back(labeled.str());
-                }
-            }
-
-            expanded.push_back("// END FOR");
-
-            // Replace the FOR instruction with the expanded body
+        std::vector<std::string> expanded = expandForLoops(std::vector<std::string>{ instr });
+        std::string trimmedInstr = trim(instr);
+        if (expanded.size() != 1 || expanded[0] != trimmedInstr) {
             p.instructions.erase(p.instructions.begin() + p.pc);
             p.instructions.insert(p.instructions.begin() + p.pc, expanded.begin(), expanded.end());
-
-            // Do NOT increment pc here — scheduler/step will handle it
-            return;
         }
     }
 
