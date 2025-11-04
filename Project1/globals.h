@@ -44,6 +44,7 @@ struct CPUCore {
 
 // === Shared globals ===
 extern std::mutex io_mutex;
+extern std::mutex processTableMutex;
 extern bool initialized;
 extern Config systemConfig;
 extern ConsoleMode mode;

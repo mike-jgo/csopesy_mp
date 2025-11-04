@@ -16,6 +16,7 @@
 
 // === Global variables ===
 std::mutex io_mutex;
+std::mutex processTableMutex;
 bool initialized = false;
 Config systemConfig;
 ConsoleMode mode = ConsoleMode::MAIN;
@@ -293,29 +294,41 @@ void ensureSchedulerActive() {
         schedulerThread = std::thread([]() {
             while (schedulerRunning.load()) {
 
-                bool anyActive = std::any_of(processTable.begin(), processTable.end(),
-                    [](const Process& p) {
-                        return p.state == ProcessState::READY ||
-                            p.state == ProcessState::RUNNING ||
-                            p.state == ProcessState::SLEEPING;
-                    });
+                bool shouldTick = false;
+                {
+                    std::lock_guard<std::mutex> lock(processTableMutex);
+                    shouldTick = std::any_of(processTable.begin(), processTable.end(),
+                        [](const Process& p) {
+                            return p.state == ProcessState::READY ||
+                                p.state == ProcessState::RUNNING ||
+                                p.state == ProcessState::SLEEPING;
+                        });
+                }
 
-                if (anyActive || autoCreateRunning.load()) {
+                if (shouldTick || autoCreateRunning.load()) {
                     scheduler_loop_tick(); // always tick sleeping processes
                 }
                 else {
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
 
-                // Stop only if truly finished
-                bool allFinished = !processTable.empty() &&
-                    std::all_of(processTable.begin(), processTable.end(),
-                        [](const Process& p) { return p.state == ProcessState::FINISHED; });
+                bool shouldStop = false;
+                {
+                    std::lock_guard<std::mutex> lock(processTableMutex);
+                    bool allFinished = !processTable.empty() &&
+                        std::all_of(processTable.begin(), processTable.end(),
+                            [](const Process& p) { return p.state == ProcessState::FINISHED; });
 
-                if (allFinished && !autoCreateRunning.load()) {
-                    schedulerRunning.store(false);
+                    if (allFinished && !autoCreateRunning.load()) {
+                        schedulerRunning.store(false);
+                        shouldStop = true;
+                    }
+                }
+
+                if (shouldStop) {
                     std::cout << "[Tick " << global_tick
                         << "] Scheduler halted (all processes finished).\n";
+                    break;
                 }
             }
             });
@@ -370,18 +383,21 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     // --- Create new process ---
     if (flag == "-s" && args.size() >= 3) {
         std::string name = args[2];
-        if (findProcess(name)) {
-            std::cout << "Process " << name << " already exists.\n";
-            return;
-        }
         Process newProc;
         newProc.name = name;
-        newProc.pid = nextPID++;
         newProc.state = ProcessState::READY;
         int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
         newProc.instructions = generateDummyInstructions(insCount);
 
-        processTable.push_back(newProc);
+        {
+            std::lock_guard<std::mutex> lock(processTableMutex);
+            if (findProcess(name)) {
+                std::cout << "Process " << name << " already exists.\n";
+                return;
+            }
+            newProc.pid = nextPID++;
+            processTable.push_back(newProc);
+        }
 
         std::cout << "Created new process: " << name << " (PID " << newProc.pid << ")\n";
         std::cout << "Attached to process screen.\n";
@@ -393,33 +409,50 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     // --- Reattach to an existing process ---
     else if (flag == "-r" && args.size() >= 3) {
         std::string name = args[2];
-        Process* p = findProcess(name);
-        if (!p) {
+        bool found = false;
+        bool finished = false;
+        int pid = 0;
+        {
+            std::lock_guard<std::mutex> lock(processTableMutex);
+            Process* p = findProcess(name);
+            if (p) {
+                found = true;
+                pid = p->pid;
+                finished = (p->state == ProcessState::FINISHED);
+            }
+        }
+
+        if (!found) {
             std::cout << "Process " << name << " not found.\n";
             return;
         }
 
-        if (p->state == ProcessState::FINISHED) {
+        if (finished) {
             std::cout << "Process " << name << " already finished.\n";
             return;
         }
 
-        std::cout << "Reattached to process " << name << " (PID " << p->pid << ")\n";
+        std::cout << "Reattached to process " << name << " (PID " << pid << ")\n";
         mode = ConsoleMode::PROCESS;
         current_process = name;
     }
 
     // --- List all processes ---
     else if (flag == "-ls") {
-        if (processTable.empty()) {
-            std::cout << "No processes created.\n";
-            return;
+        std::deque<Process> snapshot;
+        {
+            std::lock_guard<std::mutex> lock(processTableMutex);
+            if (processTable.empty()) {
+                std::cout << "No processes created.\n";
+                return;
+            }
+            snapshot.assign(processTable.begin(), processTable.end());
         }
 
         int totalCores = systemConfig.num_cpu;
         int runningCount = 0, finishedCount = 0, readyCount = 0, sleepingCount = 0;
 
-        for (const auto& p : processTable) {
+        for (const auto& p : snapshot) {
             switch (p.state) {
             case ProcessState::RUNNING:   runningCount++; break;
             case ProcessState::READY:     readyCount++; break;
@@ -441,7 +474,7 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             << " | Finished: " << finishedCount << "\n";
 
         std::cout << "\n=== PROCESS TABLE ===\n";
-        for (const auto& p : processTable) {
+        for (const auto& p : snapshot) {
             std::string stateStr;
             switch (p.state) {
             case ProcessState::READY: stateStr = "READY"; break;
@@ -523,7 +556,7 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 
         ensureSchedulerActive();
 
-        std::cout << "Auto-creation started — new process every "
+        std::cout << "Auto-creation started â€” new process every "
             << systemConfig.batch_process_freq << " tick"
             << (systemConfig.batch_process_freq == 1 ? "" : "s") << ".\n";
     }
@@ -537,13 +570,17 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 
         // Do NOT kill the scheduler thread here it should keep ticking sleepers
         // and will auto-halt when all processes reach FINISHED.
-        bool allFinished = !processTable.empty() &&
-            std::all_of(processTable.begin(), processTable.end(),
-                [](const Process& p) { return p.state == ProcessState::FINISHED; });
+        bool allFinished = false;
+        {
+            std::lock_guard<std::mutex> lock(processTableMutex);
+            allFinished = !processTable.empty() &&
+                std::all_of(processTable.begin(), processTable.end(),
+                    [](const Process& p) { return p.state == ProcessState::FINISHED; });
+        }
 
         if (allFinished) {
             schedulerRunning.store(false);
-            std::cout << "All processes finished — scheduler halted.\n";
+            std::cout << "All processes finished â€” scheduler halted.\n";
         }
     }
     else {
@@ -558,6 +595,7 @@ void scheduler_loop_tick() {
     static size_t rrCursor = 0;
     global_tick++;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::lock_guard<std::mutex> lock(processTableMutex);
     // === 1. Wake up sleeping processes ===
     for (auto& p : processTable) {
         if (p.state == ProcessState::SLEEPING && p.sleep_counter > 0) {
@@ -632,7 +670,7 @@ void scheduler_loop_tick() {
                 }
                 else if (systemConfig.scheduler == "rr" &&
                     core.quantum_left <= 0) {
-                    // Quantum expired — check if another READY process exists
+                    // Quantum expired â€” check if another READY process exists
                     bool hasOtherReady = std::any_of(processTable.begin(), processTable.end(),
                         [&](const Process& other) {
                             return other.state == ProcessState::READY &&
@@ -658,7 +696,7 @@ void scheduler_loop_tick() {
                         }
                     }
                     else {
-                        // No other ready — keep executing
+                        // No other ready â€” keep executing
                         core.quantum_left = systemConfig.quantum_cycles;
                     }
                 }
@@ -701,19 +739,29 @@ void reportUtilCommand() {
 
 // process-smi inside process screen
 void processSmiCommand() {
-    Process* proc = findProcess(current_process);
-    if (!proc) {
+    Process procSnapshot;
+    bool found = false;
+    {
+        std::lock_guard<std::mutex> lock(processTableMutex);
+        Process* proc = findProcess(current_process);
+        if (proc) {
+            found = true;
+            procSnapshot = *proc;
+        }
+    }
+
+    if (!found) {
         std::cout << "Error: Process " << current_process << " not found.\n";
         return;
     }
 
     std::cout << "\n=== Process SMI ===\n";
-    std::cout << "Name: " << proc->name << "\n";
-    std::cout << "PID: " << proc->pid << "\n";
+    std::cout << "Name: " << procSnapshot.name << "\n";
+    std::cout << "PID: " << procSnapshot.pid << "\n";
 
     // Translate enum to string
     std::string stateStr;
-    switch (proc->state) {
+    switch (procSnapshot.state) {
     case ProcessState::READY: stateStr = "READY"; break;
     case ProcessState::RUNNING: stateStr = "RUNNING"; break;
     case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
@@ -722,12 +770,12 @@ void processSmiCommand() {
     std::cout << "State: " << stateStr << "\n";
 
     // Instruction progress
-    std::cout << "Instruction progress: " << proc->pc << " / " << proc->instructions.size() << "\n";
+    std::cout << "Instruction progress: " << procSnapshot.pc << " / " << procSnapshot.instructions.size() << "\n";
 
     // Display variables
-    if (!proc->variables.empty()) {
+    if (!procSnapshot.variables.empty()) {
         std::cout << "Variables:\n";
-        for (const auto& [var, val] : proc->variables)
+        for (const auto& [var, val] : procSnapshot.variables)
             std::cout << "  " << var << " = " << val << "\n";
     }
     else {
@@ -735,9 +783,9 @@ void processSmiCommand() {
     }
 
     // Display logs
-    if (!proc->logs.empty()) {
+    if (!procSnapshot.logs.empty()) {
         std::cout << "Logs:\n";
-        for (const auto& log : proc->logs)
+        for (const auto& log : procSnapshot.logs)
             std::cout << "  " << log << "\n";
     }
     else {
@@ -745,16 +793,16 @@ void processSmiCommand() {
     }
 
     // === Display Instructions ===
-    if (!proc->instructions.empty()) {
+    if (!procSnapshot.instructions.empty()) {
         std::cout << "\nInstructions:\n";
-        for (size_t i = 0; i < proc->instructions.size(); ++i) {
+        for (size_t i = 0; i < procSnapshot.instructions.size(); ++i) {
             std::cout << "  [" << std::setw(2) << i << "] ";
 
             // Highlight the current instruction
-            if (i == proc->pc && proc->state != ProcessState::FINISHED)
-                std::cout << ">> " << proc->instructions[i] << "  <-- current\n";
+            if (i == procSnapshot.pc && procSnapshot.state != ProcessState::FINISHED)
+                std::cout << ">> " << procSnapshot.instructions[i] << "  <-- current\n";
             else
-                std::cout << proc->instructions[i] << "\n";
+                std::cout << procSnapshot.instructions[i] << "\n";
         }
     }
     else {
@@ -762,7 +810,7 @@ void processSmiCommand() {
     }
 
     // Finished message
-    if (proc->state == ProcessState::FINISHED)
+    if (procSnapshot.state == ProcessState::FINISHED)
         std::cout << "Process has finished execution.\n";
 
     std::cout << "=====================\n\n";
@@ -820,14 +868,25 @@ void inputLoop() {
         else if (mode == ConsoleMode::PROCESS) {
             if (cmd == "process-smi") processSmiCommand();
             else if (cmd == "step") {
-                Process* p = findProcess(current_process);
-                if (!p) {
+                int pcAfter = 0;
+                std::string procName;
+                bool found = false;
+                {
+                    std::lock_guard<std::mutex> lock(processTableMutex);
+                    Process* p = findProcess(current_process);
+                    if (p) {
+                        found = true;
+                        procName = p->name;
+                        executeInstruction(*p);
+                        pcAfter = p->pc;
+                    }
+                }
+                if (!found) {
                     std::cout << "No active process.\n";
                     continue;
                 }
-                executeInstruction(*p);
-                std::cout << "Executed instruction " << p->pc
-                    << " for process " << p->name << ".\n";
+                std::cout << "Executed instruction " << pcAfter
+                    << " for process " << procName << ".\n";
             }
             else if (cmd == "exit") {
                 std::cout << "Exiting process screen...\n";
