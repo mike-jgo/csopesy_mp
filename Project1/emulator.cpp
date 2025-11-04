@@ -11,6 +11,8 @@
 #include <atomic>
 #include <iomanip>
 #include <deque>
+#include <algorithm>
+#include <iterator>
 
 
 // === Global variables ===
@@ -45,6 +47,18 @@ std::string trim(const std::string& str) {
     if (first == std::string::npos) return "";
     const auto last = str.find_last_not_of(" \t\n\r");
     return str.substr(first, last - first + 1);
+}
+
+void moveProcessToBack(Process& process) {
+    Process* target = &process;
+    auto it = std::find_if(processTable.begin(), processTable.end(),
+        [&](Process& candidate) { return &candidate == target; });
+
+    if (it != processTable.end() && std::next(it) != processTable.end()) {
+        Process moved = std::move(*it);
+        processTable.erase(it);
+        processTable.push_back(std::move(moved));
+    }
 }
 
 
@@ -181,6 +195,7 @@ void executeInstruction(Process& p) {
     }
 
     std::string instr = p.instructions[p.pc];
+    bool advancePc = true;
 
     // === DECLARE(var, value) ===
     if (instr.rfind("DECLARE", 0) == 0) {
@@ -251,13 +266,16 @@ void executeInstruction(Process& p) {
         if (expanded.size() != 1 || expanded[0] != trimmedInstr) {
             p.instructions.erase(p.instructions.begin() + p.pc);
             p.instructions.insert(p.instructions.begin() + p.pc, expanded.begin(), expanded.end());
+            advancePc = false; // stay on the first expanded instruction for the next tick
         }
     }
 
 
 
     // Advance PC
-    p.pc++;
+    if (advancePc) {
+        p.pc++;
+    }
     if (p.pc >= p.instructions.size()) {
         p.state = ProcessState::FINISHED;
     }
@@ -550,32 +568,66 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 // scheduler-start
 // === Multi-core round robin scheduler ===
 void scheduler_loop_tick() {
+    static size_t rrCursor = 0;
     global_tick++;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     // === 1. Wake up sleeping processes ===
+    std::vector<Process*> wokeUp;
     for (auto& p : processTable) {
         if (p.state == ProcessState::SLEEPING && p.sleep_counter > 0) {
             p.sleep_counter--;
             if (p.sleep_counter == 0) {
                 p.state = ProcessState::READY;
+                wokeUp.push_back(&p);
             }
         }
+    }
+
+    for (Process* proc : wokeUp) {
+        moveProcessToBack(*proc);
     }
 
     // === 2. Assign ready processes to idle cores ===
     for (auto& core : cpuCores) {
         if (!core.running || core.running->state == ProcessState::FINISHED) {
-            // Pick next ready process
-            auto it = std::find_if(processTable.begin(), processTable.end(),
-                [](Process& p) { return p.state == ProcessState::READY; });
-            if (it != processTable.end()) {
-                core.running = &(*it);
-                it->state = ProcessState::RUNNING;
-                core.quantum_left = systemConfig.quantum_cycles;
+            core.running = nullptr;
+        }
+    }
+
+    size_t tableSize = processTable.size();
+    if (tableSize == 0) {
+        rrCursor = 0;
+    }
+
+    for (auto& core : cpuCores) {
+        if (core.running) {
+            continue;
+        }
+
+        tableSize = processTable.size();
+        if (tableSize == 0) {
+            rrCursor = 0;
+            core.running = nullptr;
+            continue;
+        }
+
+        if (rrCursor >= tableSize) {
+            rrCursor %= tableSize;
+        }
+
+        size_t chosenIndex = tableSize;
+        for (size_t offset = 0; offset < tableSize; ++offset) {
+            size_t idx = (rrCursor + offset) % tableSize;
+            if (processTable[idx].state == ProcessState::READY) {
+                chosenIndex = idx;
+                rrCursor = (idx + 1) % tableSize;
+                break;
             }
-            else {
-                core.running = nullptr;
-            }
+        }
+        if (chosenIndex != tableSize) {
+            core.running = &processTable[chosenIndex];
+            processTable[chosenIndex].state = ProcessState::RUNNING;
+            core.quantum_left = systemConfig.quantum_cycles;
         }
     }
 
@@ -609,6 +661,20 @@ void scheduler_loop_tick() {
                     if (hasOtherReady) {
                         p->state = ProcessState::READY;
                         core.running = nullptr; // Preempt
+                        core.quantum_left = systemConfig.quantum_cycles;
+
+                        auto it = std::find_if(processTable.begin(), processTable.end(),
+                            [&](Process& candidate) { return &candidate == p; });
+                        if (it != processTable.end()) {
+                            size_t idx = static_cast<size_t>(std::distance(processTable.begin(), it));
+                            size_t tableSize = processTable.size();
+                            if (tableSize > 0) {
+                                rrCursor = (idx + 1) % tableSize;
+                            }
+                            else {
+                                rrCursor = 0;
+                            }
+                        }
                     }
                     else {
                         // No other ready — keep executing
