@@ -18,7 +18,7 @@ std::mutex io_mutex;
 bool initialized = false;
 Config systemConfig;
 ConsoleMode mode = ConsoleMode::MAIN;
-std::vector<Process> processTable; 
+std::deque<Process> processTable; 
 std::vector<CPUCore> cpuCores;
 int nextPID = 1;
 std::string current_process = "";

@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
+#include <deque>
 
 // === Enums ===
 enum class ConsoleMode { MAIN, PROCESS };
@@ -46,7 +47,7 @@ extern std::mutex io_mutex;
 extern bool initialized;
 extern Config systemConfig;
 extern ConsoleMode mode;
-extern std::vector<Process> processTable;
+extern std::deque<Process> processTable;
 extern std::vector<CPUCore> cpuCores;
 extern int nextPID;
 extern std::string current_process;
