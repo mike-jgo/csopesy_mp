@@ -12,7 +12,6 @@
 #include <iomanip>
 #include <deque>
 #include <algorithm>
-#include <iterator>
 
 
 // === Global variables ===
@@ -47,18 +46,6 @@ std::string trim(const std::string& str) {
     if (first == std::string::npos) return "";
     const auto last = str.find_last_not_of(" \t\n\r");
     return str.substr(first, last - first + 1);
-}
-
-void moveProcessToBack(Process& process) {
-    Process* target = &process;
-    auto it = std::find_if(processTable.begin(), processTable.end(),
-        [&](Process& candidate) { return &candidate == target; });
-
-    if (it != processTable.end() && std::next(it) != processTable.end()) {
-        Process moved = std::move(*it);
-        processTable.erase(it);
-        processTable.push_back(std::move(moved));
-    }
 }
 
 
@@ -572,19 +559,13 @@ void scheduler_loop_tick() {
     global_tick++;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     // === 1. Wake up sleeping processes ===
-    std::vector<Process*> wokeUp;
     for (auto& p : processTable) {
         if (p.state == ProcessState::SLEEPING && p.sleep_counter > 0) {
             p.sleep_counter--;
             if (p.sleep_counter == 0) {
                 p.state = ProcessState::READY;
-                wokeUp.push_back(&p);
             }
         }
-    }
-
-    for (Process* proc : wokeUp) {
-        moveProcessToBack(*proc);
     }
 
     // === 2. Assign ready processes to idle cores ===
