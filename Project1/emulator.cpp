@@ -264,6 +264,10 @@ void executeInstruction(Process& p) {
     if (advancePc) {
         p.pc++;
     }
+
+    if (systemConfig.delays_per_exec > 0)
+        std::this_thread::sleep_for(std::chrono::milliseconds(systemConfig.delays_per_exec));
+
     if (p.pc >= p.instructions.size()) {
         p.state = ProcessState::FINISHED;
     }
@@ -726,15 +730,59 @@ void scheduler_loop_tick() {
     }
 }
 
-// report-util (simulated)
-void reportUtilCommand() {
-    if (!initialized) {
-        std::cout << "Error: System not initialized.\n";
+// report-util 
+void reportUtilCommand()
+{
+    if (!initialized)
+    {
+        std::cout << "Error: System not initialized. Type 'initialize' first.\n";
         return;
     }
-    std::cout << "Generating CPU utilization report (simulated)...\n";
-    std::cout << "CPU Utilization: 83%\nCores Used: 3/4\nFinished Processes: 5\n";
-    std::cout << "Saved to csopesy-log.txt\n";
+
+    int running = 0, ready = 0, sleeping = 0, finished = 0;
+    {
+        std::lock_guard<std::mutex> lock(processTableMutex);
+        for (auto& p : processTable)
+        {
+            switch (p.state)
+            {
+            case ProcessState::RUNNING:   running++; break;
+            case ProcessState::READY:     ready++; break;
+            case ProcessState::SLEEPING:  sleeping++; break;
+            case ProcessState::FINISHED:  finished++; break;
+            }
+        }
+    }
+
+    float utilization = (systemConfig.num_cpu > 0)
+        ? (float)running / systemConfig.num_cpu * 100.0f
+        : 0.0f;
+
+    std::cout << "\n=== CPU UTILIZATION REPORT ===\n";
+    std::cout << "CPU Utilization: " << utilization << "%\n";
+    std::cout << "Cores Used: " << running << "/" << systemConfig.num_cpu << "\n";
+    std::cout << "Ready: " << ready
+        << " | Sleeping: " << sleeping
+        << " | Finished: " << finished << "\n";
+    std::cout << "Report saved to csopesy-log.txt\n";
+    std::cout << "===============================\n\n";
+
+    std::ofstream log("csopesy-log.txt");
+    if (!log.is_open())
+    {
+        std::cout << "Error: Unable to create csopesy-log.txt\n";
+        return;
+    }
+
+    log << "=== CSOPESY CPU UTILIZATION REPORT ===\n";
+    log << "CPU Utilization: " << utilization << "%\n";
+    log << "Cores Used: " << running << "/" << systemConfig.num_cpu << "\n";
+    log << "Ready: " << ready
+        << " | Sleeping: " << sleeping
+        << " | Finished: " << finished << "\n";
+    log << "======================================\n";
+
+    log.close();
 }
 
 // process-smi inside process screen
