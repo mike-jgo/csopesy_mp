@@ -187,6 +187,50 @@ void executeInstruction(Process& p) {
         }
     }
 
+    // === FOR([...], repeats) ===
+    else if (instr.rfind("FOR", 0) == 0) {
+        std::regex re(R"(FOR\(\[([^\]]+)\],\s*(\d+)\))");
+        std::smatch match;
+        if (std::regex_match(instr, match, re)) {
+            std::string body = match[1];
+            int repeats = std::stoi(match[2]);
+
+            // Split the inner instruction list
+            std::vector<std::string> innerInstrs;
+            std::stringstream ss(body);
+            std::string temp;
+            while (std::getline(ss, temp, ';')) {
+                std::string trimmed = std::regex_replace(temp, std::regex(R"(^\s+|\s+$)"), "");
+                if (!trimmed.empty()) innerInstrs.push_back(trimmed);
+            }
+
+            // Expand the FOR loop into repeated instructions with markers
+            std::vector<std::string> expanded;
+            std::ostringstream beginMarker;
+            beginMarker << "// BEGIN FOR (" << repeats << "x)";
+            expanded.push_back(beginMarker.str());
+
+            for (int i = 0; i < repeats; ++i) {
+                for (const auto& inner : innerInstrs) {
+                    std::ostringstream labeled;
+                    labeled << "[FOR iter " << (i + 1) << "] " << inner;
+                    expanded.push_back(labeled.str());
+                }
+            }
+
+            expanded.push_back("// END FOR");
+
+            // Replace the FOR instruction with the expanded body
+            p.instructions.erase(p.instructions.begin() + p.pc);
+            p.instructions.insert(p.instructions.begin() + p.pc, expanded.begin(), expanded.end());
+
+            // Do NOT increment pc here — scheduler/step will handle it
+            return;
+        }
+    }
+
+
+
     // Advance PC
     p.pc++;
     if (p.pc >= p.instructions.size()) {
@@ -198,8 +242,14 @@ void executeInstruction(Process& p) {
 std::vector<std::string> generateDummyInstructions(int count) {
     std::vector<std::string> ins;
     static std::vector<std::string> pool = {
-        "DECLARE(x, 5)", "ADD(y, x, 2)", "SUBTRACT(x, y, 1)",
-        "PRINT('Hello world!')", "SLEEP(2)"
+        "DECLARE(x, 5)",
+        "DECLARE(y, 10)",
+        "ADD(sum, x, y)",
+        "SUBTRACT(diff, y, x)",
+        "PRINT('Hello world!')",
+        "PRINT('Value of sum: ' + sum)",
+        "SLEEP(2)",
+        "FOR([DECLARE(i,1); ADD(sum, sum, 1); PRINT('Loop iteration ' + sum)], 3)"
     };
     for (int i = 0; i < count; ++i)
         ins.push_back(pool[rand() % pool.size()]);
@@ -543,6 +593,23 @@ void processSmiCommand() {
     }
     else {
         std::cout << "Logs: (none)\n";
+    }
+
+    // === Display Instructions ===
+    if (!proc->instructions.empty()) {
+        std::cout << "\nInstructions:\n";
+        for (size_t i = 0; i < proc->instructions.size(); ++i) {
+            std::cout << "  [" << std::setw(2) << i << "] ";
+
+            // Highlight the current instruction
+            if (i == proc->pc && proc->state != ProcessState::FINISHED)
+                std::cout << ">> " << proc->instructions[i] << "  <-- current\n";
+            else
+                std::cout << proc->instructions[i] << "\n";
+        }
+    }
+    else {
+        std::cout << "\nInstructions: (none)\n";
     }
 
     // Finished message
