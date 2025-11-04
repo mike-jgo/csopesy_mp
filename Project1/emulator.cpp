@@ -18,13 +18,18 @@ std::mutex io_mutex;
 bool initialized = false;
 Config systemConfig;
 ConsoleMode mode = ConsoleMode::MAIN;
-std::vector<Process> processTable;
+std::vector<Process> processTable; 
+std::vector<CPUCore> cpuCores;
 int nextPID = 1;
 std::string current_process = "";
+std::atomic<bool> autoCreateRunning{ false };
 std::atomic<bool> schedulerRunning{ false };
 std::thread schedulerThread;
 unsigned long long global_tick = 0;
 
+
+// === Forward declarations ===
+void scheduler_loop_tick();
 
 // === Utility functions ===
 std::vector<std::string> tokenize(const std::string& input) {
@@ -82,15 +87,28 @@ bool loadConfigFile(const std::string& filename) {
 
     file.close();
 
+    // Validate basic config
     if (systemConfig.num_cpu <= 0 || systemConfig.scheduler.empty()) {
         std::cout << "Invalid config. Regenerating defaults.\n";
         generateDefaultConfig(filename);
         return loadConfigFile(filename);
     }
 
+    // Initialize CPU cores based on config
+    cpuCores.clear();
+    cpuCores.resize(systemConfig.num_cpu);
+    for (int i = 0; i < systemConfig.num_cpu; ++i) {
+        cpuCores[i].id = i;
+        cpuCores[i].running = nullptr;
+        cpuCores[i].quantum_left = 0;
+    }
+
     systemConfig.loaded = true;
+    std::cout << "Loaded " << systemConfig.num_cpu << " CPU cores.\n";
+
     return true;
 }
+
 
 // === Process helpers ===
 Process* findProcess(const std::string& name) {
@@ -256,6 +274,44 @@ std::vector<std::string> generateDummyInstructions(int count) {
     return ins;
 }
 
+// Ensure the scheduler thread is running
+void ensureSchedulerActive() {
+    if (!schedulerRunning.load() && initialized) {
+        schedulerRunning.store(true);
+        schedulerThread = std::thread([]() {
+            while (schedulerRunning.load()) {
+
+                bool anyActive = std::any_of(processTable.begin(), processTable.end(),
+                    [](const Process& p) {
+                        return p.state == ProcessState::READY ||
+                            p.state == ProcessState::RUNNING ||
+                            p.state == ProcessState::SLEEPING;
+                    });
+
+                if (anyActive || autoCreateRunning.load()) {
+                    scheduler_loop_tick(); // always tick sleeping processes
+                }
+                else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                }
+
+                // Stop only if truly finished
+                bool allFinished = !processTable.empty() &&
+                    std::all_of(processTable.begin(), processTable.end(),
+                        [](const Process& p) { return p.state == ProcessState::FINISHED; });
+
+                if (allFinished && !autoCreateRunning.load()) {
+                    schedulerRunning.store(false);
+                    std::cout << "[Tick " << global_tick
+                        << "] Scheduler halted (all processes finished).\n";
+                }
+            }
+            });
+        schedulerThread.detach();
+        std::cout << "Scheduler thread started.\n";
+    }
+}
+
 // === COMMANDS ===
 // Some commands are just couts simulating behavior
 // initialize command
@@ -317,6 +373,7 @@ void handleScreenCommand(const std::vector<std::string>& args) {
 
         std::cout << "Created new process: " << name << " (PID " << newProc.pid << ")\n";
         std::cout << "Attached to process screen.\n";
+        ensureSchedulerActive();
 
         mode = ConsoleMode::PROCESS;
         current_process = name;
@@ -416,127 +473,165 @@ void logInstructionTrace(Process& p, const std::string& instr) {
 
     // Combined log entry
     trace << "[" << timestamp.str() << "] "
-        << "[Tick " << global_tick << "] "
+        << "[Tick " << global_tick << " | Q" << (p.pc % systemConfig.quantum_cycles + 1)
+        << "/" << systemConfig.quantum_cycles << "] "
         << p.name << " [PID " << p.pid << "] pc="
         << p.pc << "/" << p.instructions.size()
         << " -> " << instr
         << " | State=" << stateStr << "\n";
-
     trace.close();
 }
 
-// scheduler-start
-// === Single-core round robin scheduler ===
-void schedulerStartCommand() {
+// Scheduler-start/stop command handler
+void handleSchedulerCommand(const std::vector<std::string>& args) {
     if (!initialized) {
         std::cout << "Error: System not initialized. Type 'initialize' first.\n";
         return;
     }
 
-    if (schedulerRunning.load()) {
-        std::cout << "Scheduler already running.\n";
+    if (args.size() == 1) {
+        std::cout << "Usage:\n"
+            << "  scheduler start\n"
+            << "  scheduler stop\n";
         return;
     }
 
-    std::cout << "Starting single-core scheduler...\n";
-    schedulerRunning.store(true);
+    const std::string& subcmd = args[1];
 
-    schedulerThread = std::thread([]() {
-        std::deque<Process*> readyQueue;
-
-        // Initialize ready queue
-        for (auto& p : processTable)
-            if (p.state == ProcessState::READY)
-                readyQueue.push_back(&p);
-
-        unsigned long long tick = 0;
-
-        while (schedulerRunning.load()) {
-            tick++;
-            global_tick = tick;
-
-            // --- Wake sleeping processes ---
-            for (auto& p : processTable) {
-                if (p.state == ProcessState::SLEEPING) {
-                    if (p.sleep_counter > 0) p.sleep_counter--;
-                    if (p.sleep_counter == 0) {
-                        p.state = ProcessState::READY;
-                        readyQueue.push_back(&p);
-                    }
-                }
-            }
-
-            // --- If no ready process, idle ---
-            if (readyQueue.empty()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                continue;
-            }
-
-            // --- Pick next ready process (RR) ---
-            Process* p = readyQueue.front();
-            readyQueue.pop_front();
-
-            // Assign a full quantum
-            int remainingQuantum = systemConfig.quantum_cycles;
-            p->state = ProcessState::RUNNING;
-
-            // --- Run up to N ticks or until sleep/finish ---
-            while (schedulerRunning.load() && remainingQuantum > 0) {
-                tick++;
-                global_tick = tick;
-
-                // Execute one instruction per tick
-                size_t before_pc = p->pc;
-                executeInstruction(*p);
-
-                if (p->pc > before_pc)
-                    logInstructionTrace(*p, p->instructions[p->pc - 1]);
-
-                // Handle process end or sleep
-                if (p->state == ProcessState::FINISHED || p->pc >= p->instructions.size()) {
-                    p->state = ProcessState::FINISHED;
-                    break;
-                }
-                if (p->state == ProcessState::SLEEPING) {
-                    // Yield CPU immediately if process sleeps
-                    break;
-                }
-
-                remainingQuantum--;
-
-                // Apply busy-wait delay (logical ticks)
-                for (int i = 0; i < systemConfig.delays_per_exec; ++i) {
-                    tick++;
-                    global_tick = tick;
-                }
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-
-            // --- Return to ready queue if not finished/sleeping ---
-            if (p->state == ProcessState::RUNNING) {
-                p->state = ProcessState::READY;
-                readyQueue.push_back(p);
-            }
+    if (subcmd == "start") {
+        if (autoCreateRunning.load()) {
+            std::cout << "Auto-creation is already running (every "
+                << systemConfig.batch_process_freq << " tick"
+                << (systemConfig.batch_process_freq == 1 ? "" : "s") << ").\n";
+            // Still ensure the scheduler thread is alive.
+            ensureSchedulerActive();
+            return;
         }
+        autoCreateRunning.store(true);
 
-        schedulerRunning.store(false);
-        std::cout << "\nScheduler stopped.\n";
-        });
+        ensureSchedulerActive();
 
-    schedulerThread.detach();
+        std::cout << "Auto-creation started — new process every "
+            << systemConfig.batch_process_freq << " tick"
+            << (systemConfig.batch_process_freq == 1 ? "" : "s") << ".\n";
+    }
+    else if (subcmd == "stop") {
+        if (!autoCreateRunning.load()) {
+            std::cout << "Auto-creation is not running.\n";
+            return;
+        }
+        autoCreateRunning.store(false);
+        std::cout << "Auto-creation stopped.\n";
+
+        // Do NOT kill the scheduler thread here it should keep ticking sleepers
+        // and will auto-halt when all processes reach FINISHED.
+        bool allFinished = !processTable.empty() &&
+            std::all_of(processTable.begin(), processTable.end(),
+                [](const Process& p) { return p.state == ProcessState::FINISHED; });
+
+        if (allFinished) {
+            schedulerRunning.store(false);
+            std::cout << "All processes finished — scheduler halted.\n";
+        }
+    }
+    else {
+        std::cout << "Invalid command. Use 'scheduler start' or 'scheduler stop'.\n";
+    }
 }
 
 
-// scheduler-stop
-void schedulerStopCommand() {
-    if (!schedulerRunning.load()) {
-        std::cout << "Scheduler is not running.\n";
-        return;
+// scheduler-start
+// === Multi-core round robin scheduler ===
+void scheduler_loop_tick() {
+    global_tick++;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // === 1. Wake up sleeping processes ===
+    for (auto& p : processTable) {
+        if (p.state == ProcessState::SLEEPING && p.sleep_counter > 0) {
+            p.sleep_counter--;
+            if (p.sleep_counter == 0) {
+                p.state = ProcessState::READY;
+            }
+        }
     }
 
-    schedulerRunning.store(false);
-    std::cout << "Stopping scheduler...\n";
+    // === 2. Assign ready processes to idle cores ===
+    for (auto& core : cpuCores) {
+        if (!core.running || core.running->state == ProcessState::FINISHED) {
+            // Pick next ready process
+            auto it = std::find_if(processTable.begin(), processTable.end(),
+                [](Process& p) { return p.state == ProcessState::READY; });
+            if (it != processTable.end()) {
+                core.running = &(*it);
+                it->state = ProcessState::RUNNING;
+                core.quantum_left = systemConfig.quantum_cycles;
+            }
+            else {
+                core.running = nullptr;
+            }
+        }
+    }
+
+    // === 3. Execute processes on each core ===
+    for (auto& core : cpuCores) {
+        if (core.running && core.running->state == ProcessState::RUNNING) {
+            Process* p = core.running;
+
+            // Execute one instruction = one tick
+            if (p->pc < p->instructions.size()) {
+                logInstructionTrace(*p, p->instructions[p->pc]);
+                executeInstruction(*p);
+                core.quantum_left--;
+
+                // Handle post-execution logic
+                if (p->state == ProcessState::FINISHED) {
+                    core.running = nullptr;
+                }
+                else if (p->state == ProcessState::SLEEPING) {
+                    core.running = nullptr;
+                }
+                else if (systemConfig.scheduler == "rr" &&
+                    core.quantum_left <= 0) {
+                    // Quantum expired — check if another READY process exists
+                    bool hasOtherReady = std::any_of(processTable.begin(), processTable.end(),
+                        [&](const Process& other) {
+                            return other.state == ProcessState::READY &&
+                                &other != p;
+                        });
+
+                    if (hasOtherReady) {
+                        p->state = ProcessState::READY;
+                        core.running = nullptr; // Preempt
+                    }
+                    else {
+                        // No other ready — keep executing
+                        core.quantum_left = systemConfig.quantum_cycles;
+                    }
+                }
+            }
+        }
+    }
+
+    // === 4. Auto-create processes if enabled ===
+    if (autoCreateRunning.load() &&
+        systemConfig.batch_process_freq > 0 &&
+        global_tick % systemConfig.batch_process_freq == 0) {
+    
+        // Only create one process per batch frequency, not potentially multiple
+        static unsigned long long lastCreationTick = 0;
+    
+        if (global_tick != lastCreationTick) {
+            Process newProc;
+            newProc.name = "auto_p" + std::to_string(nextPID++);
+            newProc.pid = nextPID - 1;
+            newProc.state = ProcessState::READY;
+            int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
+            newProc.instructions = generateDummyInstructions(insCount);
+            processTable.push_back(newProc);
+        
+            lastCreationTick = global_tick;
+        }
+    }
 }
 
 // report-util (simulated)
@@ -632,26 +727,25 @@ void inputLoop() {
         if (input.empty()) continue;
 
         std::vector<std::string> tokens = tokenize(input);
-        //Skip if the user entered only whitespace
-        if (tokens.empty()) {
-            continue;
-        }
+        if (tokens.empty()) continue;
+
         std::string cmd = tokens[0];
 
+        // === MAIN CONSOLE MODE ===
         if (mode == ConsoleMode::MAIN) {
             if (cmd == "help") {
                 std::cout << "Available commands:\n"
-                    << "  initialize        - Load configuration\n"
-                    << "  screen            - Create or manage processes\n"
-                    << "  scheduler-start   - Begin dummy process generation\n"
-                    << "  scheduler-stop    - Stop scheduler\n"
-                    << "  report-util       - Generate CPU report\n"
-                    << "  exit              - Quit program\n";
+                    << "  initialize          - Load configuration and start scheduler\n"
+                    << "  screen              - Create or manage processes\n"
+                    << "  scheduler start     - Begin automatic process creation\n"
+                    << "  scheduler stop      - Stop automatic process creation\n"
+                    << "  report-util         - Generate CPU report\n"
+                    << "  report-trace        - Show execution trace log\n"
+                    << "  exit                - Quit program\n";
             }
             else if (cmd == "initialize") initializeCommand();
             else if (cmd == "screen") handleScreenCommand(tokens);
-            else if (cmd == "scheduler-start") schedulerStartCommand();
-            else if (cmd == "scheduler-stop") schedulerStopCommand();
+            else if (cmd == "scheduler") handleSchedulerCommand(tokens);
             else if (cmd == "report-util") reportUtilCommand();
             else if (cmd == "report-trace") {
                 std::ifstream trace("csopesy-trace.txt");
@@ -667,6 +761,8 @@ void inputLoop() {
             else if (cmd == "exit") break;
             else std::cout << "Unknown command. Type 'help'.\n";
         }
+
+        // === PROCESS MODE ===
         else if (mode == ConsoleMode::PROCESS) {
             if (cmd == "process-smi") processSmiCommand();
             else if (cmd == "step") {
@@ -676,7 +772,8 @@ void inputLoop() {
                     continue;
                 }
                 executeInstruction(*p);
-                std::cout << "Executed instruction " << p->pc << " for process " << p->name << ".\n";
+                std::cout << "Executed instruction " << p->pc
+                    << " for process " << p->name << ".\n";
             }
             else if (cmd == "exit") {
                 std::cout << "Exiting process screen...\n";
