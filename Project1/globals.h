@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
+#include <deque>
 
 // === Enums ===
 enum class ConsoleMode { MAIN, PROCESS };
@@ -30,16 +31,29 @@ struct Process {
     std::vector<std::string> logs;
     std::unordered_map<std::string, int> variables;
     int sleep_counter = 0;
+    int quantum_used = 0;
+    bool needs_cpu = true;
+};
+
+// === Core structure ===
+struct CPUCore {
+    int id;
+    Process* running = nullptr;
+    int quantum_left = 0;
 };
 
 // === Shared globals ===
 extern std::mutex io_mutex;
+extern std::mutex processTableMutex;
 extern bool initialized;
 extern Config systemConfig;
 extern ConsoleMode mode;
-extern std::vector<Process> processTable;
+extern std::deque<Process> processTable;
+extern std::vector<CPUCore> cpuCores;
 extern int nextPID;
 extern std::string current_process;
+extern unsigned long long global_tick;
+
 
 // === Function declarations ===
 void inputLoop();
