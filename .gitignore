@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 Project1/config.txt
 Project1/csopesy-trace.txt
+*.txt
