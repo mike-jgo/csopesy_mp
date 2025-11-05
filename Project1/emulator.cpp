@@ -735,6 +735,59 @@ void scheduler_loop_tick() {
     global_tick++;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::lock_guard<std::mutex> lock(processTableMutex);
+
+    auto assignReadyToIdleCores = [&]() {
+        size_t tableSize = processTable.size();
+        if (tableSize == 0) {
+            rrCursor = 0;
+        }
+
+        for (auto& core : cpuCores) {
+            if (core.running) {
+                continue;
+            }
+
+            tableSize = processTable.size();
+            if (tableSize == 0) {
+                rrCursor = 0;
+                core.running = nullptr;
+                continue;
+            }
+
+            if (systemConfig.scheduler == "rr" && tableSize > 0 && rrCursor >= tableSize) {
+                rrCursor %= tableSize;
+            }
+
+            size_t chosenIndex = tableSize;
+            if (systemConfig.scheduler == "rr") {
+                for (size_t offset = 0; offset < tableSize; ++offset) {
+                    size_t idx = (rrCursor + offset) % tableSize;
+                    if (processTable[idx].state == ProcessState::READY) {
+                        chosenIndex = idx;
+                        rrCursor = (idx + 1) % tableSize;
+                        break;
+                    }
+                }
+            }
+            else {
+                for (size_t idx = 0; idx < tableSize; ++idx) {
+                    if (processTable[idx].state == ProcessState::READY) {
+                        chosenIndex = idx;
+                        break;
+                    }
+                }
+            }
+
+            if (chosenIndex != tableSize) {
+                core.running = &processTable[chosenIndex];
+                processTable[chosenIndex].state = ProcessState::RUNNING;
+                core.quantum_left = (systemConfig.scheduler == "rr")
+                    ? systemConfig.quantum_cycles
+                    : 0;
+            }
+        }
+        };
+
     // === 1. Wake up sleeping processes ===
     for (auto& p : processTable) {
         if (p.state == ProcessState::SLEEPING && p.sleep_counter > 0) {
@@ -752,58 +805,10 @@ void scheduler_loop_tick() {
         }
     }
 
-    size_t tableSize = processTable.size();
-    if (tableSize == 0) {
-        rrCursor = 0;
-    }
-
-    for (auto& core : cpuCores) {
-        if (core.running) {
-            continue;
-        }
-
-        tableSize = processTable.size();
-        if (tableSize == 0) {
-            rrCursor = 0;
-            core.running = nullptr;
-            continue;
-        }
-
-        if (systemConfig.scheduler == "rr" && tableSize > 0) {
-            if (rrCursor >= tableSize) {
-                rrCursor %= tableSize;
-            }
-        }
-
-        size_t chosenIndex = tableSize;
-        if (systemConfig.scheduler == "rr") {
-            for (size_t offset = 0; offset < tableSize; ++offset) {
-                size_t idx = (rrCursor + offset) % tableSize;
-                if (processTable[idx].state == ProcessState::READY) {
-                    chosenIndex = idx;
-                    rrCursor = (idx + 1) % tableSize;
-                    break;
-                }
-            }
-        }
-        else {
-            for (size_t idx = 0; idx < tableSize; ++idx) {
-                if (processTable[idx].state == ProcessState::READY) {
-                    chosenIndex = idx;
-                    break;
-                }
-            }
-        }
-        if (chosenIndex != tableSize) {
-            core.running = &processTable[chosenIndex];
-            processTable[chosenIndex].state = ProcessState::RUNNING;
-            core.quantum_left = (systemConfig.scheduler == "rr")
-                ? systemConfig.quantum_cycles
-                : 0;
-        }
-    }
+	assignReadyToIdleCores();
 
     // === 3. Execute processes on each core ===
+    bool rescheduleNeeded = false;
     for (auto& core : cpuCores) {
         if (core.running && core.running->state == ProcessState::RUNNING) {
             Process* p = core.running;
@@ -819,9 +824,11 @@ void scheduler_loop_tick() {
                 // Handle post-execution logic
                 if (p->state == ProcessState::FINISHED) {
                     core.running = nullptr;
+                    rescheduleNeeded = true;
                 }
                 else if (p->state == ProcessState::SLEEPING) {
                     core.running = nullptr;
+                    rescheduleNeeded = true;
                 }
                 else if (systemConfig.scheduler == "rr" &&
                     core.quantum_left <= 0) {
@@ -835,6 +842,7 @@ void scheduler_loop_tick() {
                     if (hasOtherReady) {
                         p->state = ProcessState::READY;
                         core.running = nullptr; // Preempt
+                        rescheduleNeeded = true;
                         core.quantum_left = systemConfig.quantum_cycles;
 
                         auto it = std::find_if(processTable.begin(), processTable.end(),
@@ -857,6 +865,13 @@ void scheduler_loop_tick() {
                 }
             }
         }
+        else if (!core.running) {
+            rescheduleNeeded = true;
+        }
+    }
+
+    if (rescheduleNeeded) {
+        assignReadyToIdleCores();
     }
 
     // === 4. Auto-create processes if enabled ===
