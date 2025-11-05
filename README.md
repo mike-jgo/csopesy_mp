@@ -43,8 +43,8 @@ This repository contains a **console emulator and process multiplexer** written 
 ## 🧭 Using the Emulator
 - Run the program and type `help` to view supported commands.
 - Use `initialize` to load `config.txt` (or auto-generate defaults) and set up CPU cores.
-- `screen` enters the per-process screen where you can create workloads and use `step` or `process-smi` for inspection.
-- `scheduler start` / `scheduler stop` toggles automatic batch creation, while `report-util` and `report-trace` emit system statistics and execution logs.
+- `screen` enters the per-process screen where you can create processes and use `process-smi` for inspection.
+- `scheduler start` / `scheduler stop` toggles automatic batch creation, while `report-util` shows system statistics and execution logs.
 
 ---
 
