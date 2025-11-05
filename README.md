@@ -1,6 +1,7 @@
-# 💻 [Group 2] MCO1 — Marquee Console (C++)
+#💻 [Group 2] MCO1 — Marquee Console (C++)
 
 This repository contains a **console emulator and process multiplexer** written in C++ for CSOPESY. The program provides an interactive `CSOPESY>` shell that loads scheduling policies from `config.txt`, synthesizes batches of pseudo-processes, and lets you inspect or single-step them through a simulated CPU scheduler. It is designed for experimenting with round-robin and FCFS scheduling, quantum accounting, and lightweight process tracing inside a CLI environment.
+
 ---
 
 ## 👥 Group Members
