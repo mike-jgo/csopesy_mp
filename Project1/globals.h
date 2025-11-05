@@ -53,7 +53,6 @@ extern std::vector<CPUCore> cpuCores;
 extern int nextPID;
 extern std::string current_process;
 extern unsigned long long global_tick;
-extern size_t rrCursor;
 
 
 // === Function declarations ===
