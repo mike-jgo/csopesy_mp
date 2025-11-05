@@ -536,6 +536,7 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     // --- List all processes ---
     else if (flag == "-ls") {
         std::deque<Process> snapshot;
+        size_t rrCursorSnapshot = 0;
         {
             std::lock_guard<std::mutex> lock(processTableMutex);
             if (processTable.empty()) {
@@ -543,6 +544,10 @@ void handleScreenCommand(const std::vector<std::string>& args) {
                 return;
             }
             snapshot.assign(processTable.begin(), processTable.end());
+            rrCursorSnapshot = rrCursor;
+            if (!snapshot.empty()) {
+                rrCursorSnapshot %= snapshot.size();
+            }
         }
 
         int totalCores = systemConfig.num_cpu;
@@ -587,7 +592,7 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             size_t total = snapshot.size();
             size_t added = 0;
             for (size_t offset = 0; offset < total && added < 4; ++offset) {
-                size_t idx = (rrCursor + offset) % total;
+                size_t idx = (rrCursorSnapshot + offset) % total;
                 if (snapshot[idx].state == ProcessState::READY) {
                     readyList.push_back(&snapshot[idx]);
                     added++;
