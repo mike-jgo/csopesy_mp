@@ -33,7 +33,7 @@ size_t rrCursor = 0;
 
 
 // === Forward declarations ===
-void scheduler_loop_tick();
+void scheduler_loop_tick(bool hasActiveWork);
 
 // === Utility functions ===
 std::vector<std::string> tokenize(const std::string& input) {
@@ -356,7 +356,7 @@ std::vector<std::string> generateDummyInstructions(int count) {
         "PRINT('Hello world!')",
         "PRINT('Value of sum: ' + sum)",
         "SLEEP(2)",
-        "FOR([DECLARE(i,1); ADD(sum, sum, 1); PRINT('Loop iteration ' + sum)], 3)"
+        "FOR([PRINT('Hello world!')], 2)"
     };
     for (int i = 0; i < count; ++i)
         ins.push_back(pool[rand() % pool.size()]);
@@ -401,8 +401,9 @@ void ensureSchedulerActive() {
                         });
                 }
 
-                if (shouldTick || autoCreateRunning.load()) {
-                    scheduler_loop_tick(); // always tick sleeping processes
+                bool tickNow = shouldTick || autoCreateRunning.load();
+                if (tickNow) {
+                    scheduler_loop_tick(tickNow);
                 }
                 else {
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -722,21 +723,6 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
         }
         autoCreateRunning.store(false);
         std::cout << "Auto-creation stopped.\n";
-
-        // Do NOT kill the scheduler thread here it should keep ticking sleepers
-        // and will auto-halt when all processes reach FINISHED.
-        bool allFinished = false;
-        {
-            std::lock_guard<std::mutex> lock(processTableMutex);
-            allFinished = !processTable.empty() &&
-                std::all_of(processTable.begin(), processTable.end(),
-                    [](const Process& p) { return p.state == ProcessState::FINISHED; });
-        }
-
-        if (allFinished) {
-            schedulerRunning.store(false);
-            std::cout << "All processes finished scheduler halted.\n";
-        }
     }
     else {
         std::cout << "Invalid command. Use 'scheduler start' or 'scheduler stop'.\n";
@@ -746,10 +732,65 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 
 // scheduler-start
 // === Multi-core scheduler (RR / FCFS) ===
-void scheduler_loop_tick() {
+void scheduler_loop_tick(bool hasActiveWork) {
+    const auto activeTickDelay = std::chrono::milliseconds(5);
+    const auto idleTickDelay = std::chrono::milliseconds(100);
+
+    std::this_thread::sleep_for(hasActiveWork ? activeTickDelay : idleTickDelay);
     global_tick++;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::lock_guard<std::mutex> lock(processTableMutex);
+
+    auto assignReadyToIdleCores = [&]() {
+        size_t tableSize = processTable.size();
+        if (tableSize == 0) {
+            rrCursor = 0;
+        }
+
+        for (auto& core : cpuCores) {
+            if (core.running) {
+                continue;
+            }
+
+            tableSize = processTable.size();
+            if (tableSize == 0) {
+                rrCursor = 0;
+                core.running = nullptr;
+                continue;
+            }
+
+            if (systemConfig.scheduler == "rr" && tableSize > 0 && rrCursor >= tableSize) {
+                rrCursor %= tableSize;
+            }
+
+            size_t chosenIndex = tableSize;
+            if (systemConfig.scheduler == "rr") {
+                for (size_t offset = 0; offset < tableSize; ++offset) {
+                    size_t idx = (rrCursor + offset) % tableSize;
+                    if (processTable[idx].state == ProcessState::READY) {
+                        chosenIndex = idx;
+                        rrCursor = (idx + 1) % tableSize;
+                        break;
+                    }
+                }
+            }
+            else {
+                for (size_t idx = 0; idx < tableSize; ++idx) {
+                    if (processTable[idx].state == ProcessState::READY) {
+                        chosenIndex = idx;
+                        break;
+                    }
+                }
+            }
+
+            if (chosenIndex != tableSize) {
+                core.running = &processTable[chosenIndex];
+                processTable[chosenIndex].state = ProcessState::RUNNING;
+                core.quantum_left = (systemConfig.scheduler == "rr")
+                    ? systemConfig.quantum_cycles
+                    : 0;
+            }
+        }
+        };
+
     // === 1. Wake up sleeping processes ===
     for (auto& p : processTable) {
         if (p.state == ProcessState::SLEEPING && p.sleep_counter > 0) {
@@ -767,58 +808,10 @@ void scheduler_loop_tick() {
         }
     }
 
-    size_t tableSize = processTable.size();
-    if (tableSize == 0) {
-        rrCursor = 0;
-    }
-
-    for (auto& core : cpuCores) {
-        if (core.running) {
-            continue;
-        }
-
-        tableSize = processTable.size();
-        if (tableSize == 0) {
-            rrCursor = 0;
-            core.running = nullptr;
-            continue;
-        }
-
-        if (systemConfig.scheduler == "rr" && tableSize > 0) {
-            if (rrCursor >= tableSize) {
-                rrCursor %= tableSize;
-            }
-        }
-
-        size_t chosenIndex = tableSize;
-        if (systemConfig.scheduler == "rr") {
-            for (size_t offset = 0; offset < tableSize; ++offset) {
-                size_t idx = (rrCursor + offset) % tableSize;
-                if (processTable[idx].state == ProcessState::READY) {
-                    chosenIndex = idx;
-                    rrCursor = (idx + 1) % tableSize;
-                    break;
-                }
-            }
-        }
-        else {
-            for (size_t idx = 0; idx < tableSize; ++idx) {
-                if (processTable[idx].state == ProcessState::READY) {
-                    chosenIndex = idx;
-                    break;
-                }
-            }
-        }
-        if (chosenIndex != tableSize) {
-            core.running = &processTable[chosenIndex];
-            processTable[chosenIndex].state = ProcessState::RUNNING;
-            core.quantum_left = (systemConfig.scheduler == "rr")
-                ? systemConfig.quantum_cycles
-                : 0;
-        }
-    }
+	assignReadyToIdleCores();
 
     // === 3. Execute processes on each core ===
+    bool rescheduleNeeded = false;
     for (auto& core : cpuCores) {
         if (core.running && core.running->state == ProcessState::RUNNING) {
             Process* p = core.running;
@@ -834,9 +827,11 @@ void scheduler_loop_tick() {
                 // Handle post-execution logic
                 if (p->state == ProcessState::FINISHED) {
                     core.running = nullptr;
+                    rescheduleNeeded = true;
                 }
                 else if (p->state == ProcessState::SLEEPING) {
                     core.running = nullptr;
+                    rescheduleNeeded = true;
                 }
                 else if (systemConfig.scheduler == "rr" &&
                     core.quantum_left <= 0) {
@@ -850,6 +845,7 @@ void scheduler_loop_tick() {
                     if (hasOtherReady) {
                         p->state = ProcessState::READY;
                         core.running = nullptr; // Preempt
+                        rescheduleNeeded = true;
                         core.quantum_left = systemConfig.quantum_cycles;
 
                         auto it = std::find_if(processTable.begin(), processTable.end(),
@@ -872,6 +868,13 @@ void scheduler_loop_tick() {
                 }
             }
         }
+        else if (!core.running) {
+            rescheduleNeeded = true;
+        }
+    }
+
+    if (rescheduleNeeded) {
+        assignReadyToIdleCores();
     }
 
     // === 4. Auto-create processes if enabled ===
@@ -882,7 +885,11 @@ void scheduler_loop_tick() {
         // Only create one process per batch frequency, not potentially multiple
         static unsigned long long lastCreationTick = 0;
     
-        if (global_tick != lastCreationTick) {
+        static auto lastCreationWallClock = std::chrono::steady_clock::now();
+        const auto creationCooldown = std::chrono::milliseconds(100);
+
+        const auto now = std::chrono::steady_clock::now();
+        if (global_tick != lastCreationTick && now - lastCreationWallClock >= creationCooldown) {
             Process newProc;
             newProc.name = "auto_p" + std::to_string(nextPID++);
             newProc.pid = nextPID - 1;
@@ -891,7 +898,7 @@ void scheduler_loop_tick() {
             newProc.instructions = generateDummyInstructions(insCount);
             processTable.push_back(newProc);
         
-            lastCreationTick = global_tick;
+            lastCreationWallClock = now;
         }
     }
 }
