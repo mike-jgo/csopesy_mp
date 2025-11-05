@@ -29,6 +29,7 @@ std::atomic<bool> autoCreateRunning{ false };
 std::atomic<bool> schedulerRunning{ false };
 std::thread schedulerThread;
 unsigned long long global_tick = 0;
+size_t rrCursor = 0;
 
 
 // === Forward declarations ===
@@ -81,6 +82,39 @@ std::vector<std::string> expandForLoops(const std::vector<std::string>& instruct
 
     return result;
 }
+
+// Split by '+' but ignore '+' inside single quotes
+std::vector<std::string> splitPrintExpr(const std::string& expr) {
+    std::vector<std::string> parts;
+    std::string cur;
+    bool inStr = false; // single-quoted string
+    for (size_t i = 0; i < expr.size(); ++i) {
+        char c = expr[i];
+        if (c == '\'') {
+            inStr = !inStr;
+            cur.push_back(c);
+        }
+        else if (c == '+' && !inStr) {
+            parts.push_back(trim(cur));
+            cur.clear();
+        }
+        else {
+            cur.push_back(c);
+        }
+    }
+    if (!cur.empty()) parts.push_back(trim(cur));
+    return parts;
+}
+
+// Remove surrounding single quotes if present
+bool isSingleQuoted(const std::string& s) {
+    return s.size() >= 2 && s.front() == '\'' && s.back() == '\'';
+}
+std::string unquoteSingle(const std::string& s) {
+    if (isSingleQuoted(s)) return s.substr(1, s.size() - 2);
+    return s;
+}
+
 
 // === Config handling ===
 bool generateDefaultConfig(const std::string& filename) {
@@ -240,13 +274,39 @@ void executeInstruction(Process& p) {
 
     // === PRINT('message') ===
     else if (instr.rfind("PRINT", 0) == 0) {
-        std::regex re(R"(PRINT\('([^']+)'\))");
+        // Match anything inside PRINT(...)
+        std::regex re(R"(PRINT\((.*)\))");
         std::smatch match;
         if (std::regex_match(instr, match, re)) {
-            std::string message = match[1];
-            p.logs.push_back(message);
+            std::string expr = trim(match[1]);
+
+            // Break the expression by '+' while respecting quoted segments
+            std::vector<std::string> parts = splitPrintExpr(expr);
+            std::ostringstream out;
+
+            for (auto& part : parts) {
+                // If it's a quoted string, append literal content
+                if (isSingleQuoted(part)) {
+                    out << unquoteSingle(part);
+                }
+                else {
+                    try {
+                        // Try integer literal first
+                        int v = std::stoi(part);
+                        out << v;
+                    }
+                    catch (...) {
+                        // Fallback to variable
+                        int v = resolveValue(p, part);
+                        out << v;
+                    }
+                }
+            }
+
+            p.logs.push_back(out.str());
         }
     }
+
 
     // === SLEEP(n) ===
     else if (instr.rfind("SLEEP", 0) == 0) {
@@ -301,6 +361,26 @@ std::vector<std::string> generateDummyInstructions(int count) {
     for (int i = 0; i < count; ++i)
         ins.push_back(pool[rand() % pool.size()]);
     return ins;
+}
+
+// Generates alternating PRINT and ADD instructions
+std::vector<std::string> generateAlternatingInstructions(int count) {
+    std::vector<std::string> instructions;
+    if (count <= 0) return instructions;
+
+    for (int i = 0; i < count; ++i) {
+        if (i % 2 == 0) {
+            // PRINT instruction
+            instructions.push_back("PRINT('Value from: ' + x)");
+        }
+        else {
+            // ADD instruction with randomized operand between 1 and 10
+            int randomValue = (rand() % 10) + 1;
+            instructions.push_back("ADD(x, x, " + std::to_string(randomValue) + ")");
+        }
+    }
+
+    return instructions;
 }
 
 // Ensure the scheduler thread is running
@@ -456,6 +536,7 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     // --- List all processes ---
     else if (flag == "-ls") {
         std::deque<Process> snapshot;
+        size_t rrCursorSnapshot = 0;
         {
             std::lock_guard<std::mutex> lock(processTableMutex);
             if (processTable.empty()) {
@@ -463,6 +544,10 @@ void handleScreenCommand(const std::vector<std::string>& args) {
                 return;
             }
             snapshot.assign(processTable.begin(), processTable.end());
+            rrCursorSnapshot = rrCursor;
+            if (!snapshot.empty()) {
+                rrCursorSnapshot %= snapshot.size();
+            }
         }
 
         int totalCores = systemConfig.num_cpu;
@@ -490,17 +575,48 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             << " | Finished: " << finishedCount << "\n";
 
         std::cout << "\n=== PROCESS TABLE ===\n";
+
+        // Print all RUNNING and SLEEPING processes first
         for (const auto& p : snapshot) {
-            std::string stateStr;
-            switch (p.state) {
-            case ProcessState::READY: stateStr = "READY"; break;
-            case ProcessState::RUNNING: stateStr = "RUNNING"; break;
-            case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
-            case ProcessState::FINISHED: stateStr = "FINISHED"; break;
+            if (p.state == ProcessState::RUNNING || p.state == ProcessState::SLEEPING) {
+                std::string stateStr = (p.state == ProcessState::RUNNING ? "RUNNING" : "SLEEPING");
+                std::cout << "  " << p.name << " [PID " << p.pid << "] - "
+                    << stateStr << " (" << p.pc << "/" << p.instructions.size() << ")\n";
             }
-            std::cout << "  " << p.name << " [PID " << p.pid << "] - "
-                << stateStr << " (" << p.pc << "/" << p.instructions.size() << ")\n";
         }
+
+        // Show next 4 READY processes based on actual scheduler order
+        std::vector<Process*> readyList;
+
+        if (systemConfig.scheduler == "rr" && !snapshot.empty()) {
+            size_t total = snapshot.size();
+            size_t added = 0;
+            for (size_t offset = 0; offset < total && added < 4; ++offset) {
+                size_t idx = (rrCursorSnapshot + offset) % total;
+                if (snapshot[idx].state == ProcessState::READY) {
+                    readyList.push_back(&snapshot[idx]);
+                    added++;
+                }
+            }
+        }
+        else if (systemConfig.scheduler == "fcfs") {
+            for (auto& p : snapshot) {
+                if (p.state == ProcessState::READY) {
+                    readyList.push_back(&p);
+                    if (readyList.size() >= 4) break;
+                }
+            }
+        }
+
+        // Display the READY list
+        for (auto* p : readyList) {
+            std::cout << "  " << p->name << " [PID " << p->pid << "] - READY ("
+                << p->pc << "/" << p->instructions.size() << ")\n";
+        }
+
+        if (runningCount == 0 && sleepingCount == 0 && readyList.empty())
+            std::cout << "  (No active or upcoming processes)\n";
+
         std::cout << "=====================\n\n";
     }
 }
@@ -580,7 +696,7 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 
         ensureSchedulerActive();
 
-        std::cout << "Auto-creation started — new process every "
+        std::cout << "Auto-creation started new process every "
             << systemConfig.batch_process_freq << " tick"
             << (systemConfig.batch_process_freq == 1 ? "" : "s") << ".\n";
     }
@@ -604,7 +720,7 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 
         if (allFinished) {
             schedulerRunning.store(false);
-            std::cout << "All processes finished — scheduler halted.\n";
+            std::cout << "All processes finished scheduler halted.\n";
         }
     }
     else {
@@ -616,7 +732,6 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 // scheduler-start
 // === Multi-core scheduler (RR / FCFS) ===
 void scheduler_loop_tick() {
-    static size_t rrCursor = 0;
     global_tick++;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::lock_guard<std::mutex> lock(processTableMutex);
@@ -877,21 +992,21 @@ void processSmiCommand() {
     }
 
     // === Display Instructions ===
-    if (!procSnapshot.instructions.empty()) {
-        std::cout << "\nInstructions:\n";
-        for (size_t i = 0; i < procSnapshot.instructions.size(); ++i) {
-            std::cout << "  [" << std::setw(2) << i << "] ";
+    //if (!procSnapshot.instructions.empty()) {
+    //    std::cout << "\nInstructions:\n";
+    //    for (size_t i = 0; i < procSnapshot.instructions.size(); ++i) {
+    //        std::cout << "  [" << std::setw(2) << i << "] ";
 
-            // Highlight the current instruction
-            if (i == procSnapshot.pc && procSnapshot.state != ProcessState::FINISHED)
-                std::cout << ">> " << procSnapshot.instructions[i] << "  <-- current\n";
-            else
-                std::cout << procSnapshot.instructions[i] << "\n";
-        }
-    }
-    else {
-        std::cout << "\nInstructions: (none)\n";
-    }
+    //        // Highlight the current instruction
+    //        if (i == procSnapshot.pc && procSnapshot.state != ProcessState::FINISHED)
+    //            std::cout << ">> " << procSnapshot.instructions[i] << "  <-- current\n";
+    //        else
+    //            std::cout << procSnapshot.instructions[i] << "\n";
+    //    }
+    //}
+    //else {
+    //    std::cout << "\nInstructions: (none)\n";
+    //}
 
     // Finished message
     if (procSnapshot.state == ProcessState::FINISHED)
