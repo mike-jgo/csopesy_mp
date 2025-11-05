@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <deque>
 #include <algorithm>
+#include <cctype>
 
 
 // === Global variables ===
@@ -118,7 +119,12 @@ bool loadConfigFile(const std::string& filename) {
     std::string key, value;
     while (file >> key >> value) {
         if (key == "num-cpu") systemConfig.num_cpu = std::stoi(value);
-        else if (key == "scheduler") systemConfig.scheduler = value;
+        else if (key == "scheduler") {
+            systemConfig.scheduler = value;
+            std::transform(systemConfig.scheduler.begin(), systemConfig.scheduler.end(),
+                systemConfig.scheduler.begin(),
+                [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        }
         else if (key == "quantum-cycles") systemConfig.quantum_cycles = std::stoi(value);
         else if (key == "batch-process-freq") systemConfig.batch_process_freq = std::stoi(value);
         else if (key == "min-ins") systemConfig.min_ins = std::stoi(value);
@@ -127,6 +133,12 @@ bool loadConfigFile(const std::string& filename) {
     }
 
     file.close();
+
+    if (systemConfig.scheduler != "rr" && systemConfig.scheduler != "fcfs") {
+        std::cout << "Warning: Unsupported scheduler '" << systemConfig.scheduler
+            << "'. Defaulting to round-robin.\n";
+        systemConfig.scheduler = "rr";
+    }
 
     // Validate basic config
     if (systemConfig.num_cpu <= 0 || systemConfig.scheduler.empty()) {
@@ -521,9 +533,17 @@ void logInstructionTrace(Process& p, const std::string& instr) {
     }
 
     // Combined log entry
-    trace << "[" << timestamp.str() << "] "
-        << "[Tick " << global_tick << " | Q" << (p.pc % systemConfig.quantum_cycles + 1)
-        << "/" << systemConfig.quantum_cycles << "] "
+    trace << "[" << timestamp.str() << "] ";
+
+    trace << "[Tick " << global_tick;
+    if (systemConfig.scheduler == "rr" && systemConfig.quantum_cycles > 0) {
+        int quantumPos = (p.pc % systemConfig.quantum_cycles) + 1;
+        trace << " | Q" << quantumPos << "/" << systemConfig.quantum_cycles;
+    }
+    else if (systemConfig.scheduler == "fcfs") {
+        trace << " | FCFS";
+    }
+    trace << "] "
         << p.name << " [PID " << p.pid << "] pc="
         << p.pc << "/" << p.instructions.size()
         << " -> " << instr
@@ -594,7 +614,7 @@ void handleSchedulerCommand(const std::vector<std::string>& args) {
 
 
 // scheduler-start
-// === Multi-core round robin scheduler ===
+// === Multi-core scheduler (RR / FCFS) ===
 void scheduler_loop_tick() {
     static size_t rrCursor = 0;
     global_tick++;
@@ -634,23 +654,37 @@ void scheduler_loop_tick() {
             continue;
         }
 
-        if (rrCursor >= tableSize) {
-            rrCursor %= tableSize;
+        if (systemConfig.scheduler == "rr" && tableSize > 0) {
+            if (rrCursor >= tableSize) {
+                rrCursor %= tableSize;
+            }
         }
 
         size_t chosenIndex = tableSize;
-        for (size_t offset = 0; offset < tableSize; ++offset) {
-            size_t idx = (rrCursor + offset) % tableSize;
-            if (processTable[idx].state == ProcessState::READY) {
-                chosenIndex = idx;
-                rrCursor = (idx + 1) % tableSize;
-                break;
+        if (systemConfig.scheduler == "rr") {
+            for (size_t offset = 0; offset < tableSize; ++offset) {
+                size_t idx = (rrCursor + offset) % tableSize;
+                if (processTable[idx].state == ProcessState::READY) {
+                    chosenIndex = idx;
+                    rrCursor = (idx + 1) % tableSize;
+                    break;
+                }
+            }
+        }
+        else {
+            for (size_t idx = 0; idx < tableSize; ++idx) {
+                if (processTable[idx].state == ProcessState::READY) {
+                    chosenIndex = idx;
+                    break;
+                }
             }
         }
         if (chosenIndex != tableSize) {
             core.running = &processTable[chosenIndex];
             processTable[chosenIndex].state = ProcessState::RUNNING;
-            core.quantum_left = systemConfig.quantum_cycles;
+            core.quantum_left = (systemConfig.scheduler == "rr")
+                ? systemConfig.quantum_cycles
+                : 0;
         }
     }
 
@@ -663,7 +697,9 @@ void scheduler_loop_tick() {
             if (p->pc < p->instructions.size()) {
                 logInstructionTrace(*p, p->instructions[p->pc]);
                 executeInstruction(*p);
-                core.quantum_left--;
+                if (systemConfig.scheduler == "rr") {
+                    core.quantum_left--;
+                }
 
                 // Handle post-execution logic
                 if (p->state == ProcessState::FINISHED) {
