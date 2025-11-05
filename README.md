@@ -1,7 +1,6 @@
-# 💻 [Group 2] Machine Project — Marquee Console (C++)
+# 💻 [Group 2] MCO1 - CSOPESY Console Emulator
 
-This project is a **console-based Marquee** written in C++ in partial submission for CSOPESY.
-It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and configure a scrolling marquee text.
+This repository contains a **console emulator and process multiplexer** written in C++ for CSOPESY. The program provides an interactive `CSOPESY>` shell that loads scheduling policies from `config.txt`, synthesizes batches of pseudo-processes, and lets you inspect or single-step them through a simulated CPU scheduler. It is designed for experimenting with round-robin and FCFS scheduling, quantum accounting, and lightweight process tracing inside a CLI environment.
 
 ---
 
@@ -31,6 +30,21 @@ It simulates an interactive shell (`CSOPESY>`) where users can start, stop, and 
 7. **Run the program**:  
    Press **Ctrl+F5** (Start Without Debugging).  
    The console window will open with the `CSOPESY>` prompt.
+
+---
+
+## 🚪 Entry Point
+- **Entry class/file:** `Project1/main.cpp`
+- **Path from repository root:** `Project1/main.cpp`
+- `int main()` seeds the runtime, prints CLI metadata, and jumps into `inputLoop()` from `Project1/emulator.cpp` to drive the console emulator.
+
+---
+
+## 🧭 Using the Emulator
+- Run the program and type `help` to view supported commands.
+- Use `initialize` to load `config.txt` (or auto-generate defaults) and set up CPU cores.
+- `screen` enters the per-process screen where you can create processes and use `process-smi` for inspection.
+- `scheduler start` / `scheduler stop` toggles automatic batch creation, while `report-util` shows system statistics and execution logs.
 
 ---
 
