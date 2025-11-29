@@ -49,6 +49,8 @@ std::vector<std::string> tokenize(const std::string& input) {
     return tokens;
 }
 
+
+
 // Split by '+' but ignore '+' inside single quotes
 std::vector<std::string> splitPrintExpr(const std::string& expr) {
     std::vector<std::string> parts;
@@ -202,6 +204,45 @@ public:
     }
 };
 
+class StoreInstruction : public Instruction {
+    int address;
+    int value;
+public:
+    StoreInstruction(int addr, int val) : address(addr), value(val) {}
+    void execute(Process& p) override {
+        int dummy;
+        if (memoryManager->access(p.pid, address, true, value)) {
+            // Success
+        } else {
+            std::cout << "Error: Memory access violation in process " << p.pid << "\n";
+            // p.state = ProcessState::FINISHED; // Optional: kill process
+        }
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "STORE(" + std::to_string(address) + ", " + std::to_string(value) + ")";
+    }
+};
+
+class LoadInstruction : public Instruction {
+    int address;
+    std::string var;
+public:
+    LoadInstruction(int addr, const std::string& v) : address(addr), var(v) {}
+    void execute(Process& p) override {
+        int val = 0;
+        if (memoryManager->access(p.pid, address, false, val)) {
+            p.variables[var] = val;
+        } else {
+            std::cout << "Error: Memory access violation in process " << p.pid << "\n";
+        }
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "LOAD(" + std::to_string(address) + ", " + var + ")";
+    }
+};
+
 // === Parsing ===
 
 std::shared_ptr<Instruction> parseInstruction(const std::string& line) {
@@ -246,6 +287,18 @@ std::shared_ptr<Instruction> parseInstruction(const std::string& line) {
         return std::make_shared<ForInstruction>(match[1], std::stoi(match[2]));
     }
 
+    // STORE
+    static std::regex storeRegex(R"(STORE\((\d+),\s*(\d+)\))");
+    if (std::regex_match(instr, match, storeRegex)) {
+        return std::make_shared<StoreInstruction>(std::stoi(match[1]), std::stoi(match[2]));
+    }
+
+    // LOAD
+    static std::regex loadRegex(R"(LOAD\((\d+),\s*(\w+)\))");
+    if (std::regex_match(instr, match, loadRegex)) {
+        return std::make_shared<LoadInstruction>(std::stoi(match[1]), match[2]);
+    }
+
     return nullptr;
 }
 
@@ -287,6 +340,10 @@ bool generateDefaultConfig(const std::string& filename) {
     file << "min-ins 5\n";
     file << "max-ins 10\n";
     file << "delays-per-exec 1\n";
+    file << "max-overall-mem 16384\n";
+    file << "mem-per-frame 16\n";
+    file << "min-mem-per-proc 4096\n";
+    file << "max-mem-per-proc 4096\n";
     file.close();
 
     std::cout << "Default config.txt generated with safe defaults.\n";
@@ -320,6 +377,10 @@ bool loadConfigFile(const std::string& filename) {
         else if (key == "min-ins") systemConfig.min_ins = std::stoi(value);
         else if (key == "max-ins") systemConfig.max_ins = std::stoi(value);
         else if (key == "delays-per-exec") systemConfig.delays_per_exec = std::stoi(value);
+        else if (key == "max-overall-mem") systemConfig.max_overall_mem = std::stoul(value);
+        else if (key == "mem-per-frame") systemConfig.mem_per_frame = std::stoul(value);
+        else if (key == "min-mem-per-proc") systemConfig.min_mem_per_proc = std::stoul(value);
+        else if (key == "max-mem-per-proc") systemConfig.max_mem_per_proc = std::stoul(value);
     }
 
     file.close();
@@ -348,6 +409,8 @@ bool loadConfigFile(const std::string& filename) {
 
     systemConfig.loaded = true;
     std::cout << "Loaded " << systemConfig.num_cpu << " CPU cores.\n";
+    std::cout << "Memory: " << systemConfig.max_overall_mem << " bytes (" 
+              << systemConfig.mem_per_frame << " bytes/frame)\n";
 
     return true;
 }
@@ -372,7 +435,10 @@ std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count) {
         "PRINT('Hello world!')",
         "PRINT('Value of sum: ' + sum)",
         "SLEEP(2)",
-        "FOR([PRINT('Hello world!')], 2)"
+        "FOR([PRINT('Hello world!')], 2)",
+        "STORE(0, 42)",
+        "LOAD(0, val)",
+        "PRINT('Loaded value: ' + val)"
     };
     for (int i = 0; i < count; ++i) {
         std::string line = pool[rand() % pool.size()];
@@ -502,6 +568,14 @@ void initializeCommand() {
     std::cout << "  batch-process-freq: " << systemConfig.batch_process_freq << "\n";
     std::cout << "  instruction range: " << systemConfig.min_ins << "-" << systemConfig.max_ins << "\n";
     std::cout << "  delays-per-exec: " << systemConfig.delays_per_exec << "\n";
+    
+    // Initialize Memory Manager
+    size_t total_frames = systemConfig.max_overall_mem / systemConfig.mem_per_frame;
+    memoryManager = std::make_unique<MemoryManager>(total_frames, systemConfig.mem_per_frame);
+    
+    std::cout << "  Memory Initialized: " << total_frames << " frames x " 
+              << systemConfig.mem_per_frame << " bytes\n";
+
     std::cout << "System initialization complete.\n\n";
 }
 
@@ -529,6 +603,12 @@ void handleScreenCommand(const std::vector<std::string>& args) {
         newProc.state = ProcessState::READY;
         int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
         newProc.instructions = generateDummyInstructions(insCount);
+
+        // Memory Allocation
+        size_t memSize = rand() % (systemConfig.max_mem_per_proc - systemConfig.min_mem_per_proc + 1) + systemConfig.min_mem_per_proc;
+        newProc.memory_required = memSize;
+        int pages = (memSize + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
+        memoryManager->initializePageTable(newProc, pages);
 
         {
             std::lock_guard<std::mutex> lock(processTableMutex);
@@ -907,6 +987,13 @@ void scheduler_loop_tick(bool hasActiveWork) {
             newProc.state = ProcessState::READY;
             int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
             newProc.instructions = generateDummyInstructions(insCount);
+            
+            // Memory Allocation
+            size_t memSize = rand() % (systemConfig.max_mem_per_proc - systemConfig.min_mem_per_proc + 1) + systemConfig.min_mem_per_proc;
+            newProc.memory_required = memSize;
+            int pages = (memSize + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
+            memoryManager->initializePageTable(newProc, pages);
+            
             processTable.push_back(newProc);
 
             lastCreationWallClock = now;
@@ -1068,11 +1155,50 @@ void processSmiCommand() {
         std::cout << "Logs: (none)\n";
     }
 
-    // Finished message
     if (procSnapshot.state == ProcessState::FINISHED)
         std::cout << "Process has finished execution.\n";
 
+    // Display Page Table
+    std::cout << "\n--- Page Table ---\n";
+    std::cout << "Total Frames: " << memoryManager->getTotalFrames() << "\n";
+    std::cout << "Free Frames: " << memoryManager->getFreeFrameCount() << "\n";
+    std::cout << "Page | Frame | Valid | Dirty | Last Accessed\n";
+    for (const auto& [page, entry] : procSnapshot.page_table) {
+        std::cout << "  " << page << "  | " 
+                  << (entry.valid ? std::to_string(entry.frame_num) : "-") << "   | "
+                  << (entry.valid ? "Yes" : "No ") << "   | "
+                  << (entry.dirty ? "Yes" : "No ") << "   | "
+                  << entry.last_accessed << "\n";
+    }
+
     std::cout << "=====================\n\n";
+}
+
+void vmstatCommand() {
+    if (!initialized || !memoryManager) {
+        std::cout << "Error: System not initialized.\n";
+        return;
+    }
+
+    size_t total_mem = systemConfig.max_overall_mem;
+    size_t used_mem = memoryManager->getUsedMemory();
+    size_t free_mem = total_mem - used_mem;
+
+    // Mock CPU ticks (since we don't track them granularly yet)
+    unsigned long long idle_ticks = global_tick * systemConfig.num_cpu; // Simplification
+    unsigned long long active_ticks = global_tick; // Simplification
+
+    VMStatCounters stats = memoryManager->getVMStat();
+
+    std::cout << "\n=== VMSTAT ===\n";
+    std::cout << total_mem << " K total memory\n";
+    std::cout << used_mem << " K used memory\n";
+    std::cout << free_mem << " K free memory\n";
+    std::cout << idle_ticks << " idle cpu ticks\n";
+    std::cout << active_ticks << " active cpu ticks\n";
+    std::cout << stats.pages_paged_in << " pages paged in\n";
+    std::cout << stats.pages_paged_out << " pages paged out\n";
+    std::cout << "=================\n\n";
 }
 
 // === INPUT LOOP ===
@@ -1108,6 +1234,7 @@ void inputLoop() {
             else if (cmd == "screen") handleScreenCommand(tokens);
             else if (cmd == "scheduler") handleSchedulerCommand(tokens);
             else if (cmd == "report-util") reportUtilCommand();
+            else if (cmd == "vmstat") vmstatCommand();
             else if (cmd == "report-trace") {
                 std::ifstream trace("csopesy-trace.txt");
                 if (!trace.is_open()) {

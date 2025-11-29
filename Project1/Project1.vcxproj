@@ -126,9 +126,16 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="emulator.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="globals.h" />
+    <ClInclude Include="MemoryManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt" />
+    <Text Include="csopesy-log.txt" />
+    <Text Include="csopesy-trace.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
