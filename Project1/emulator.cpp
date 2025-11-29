@@ -14,14 +14,13 @@
 #include <algorithm>
 #include <cctype>
 
-
 // === Global variables ===
 std::mutex io_mutex;
 std::mutex processTableMutex;
 bool initialized = false;
 Config systemConfig;
 ConsoleMode mode = ConsoleMode::MAIN;
-std::deque<Process> processTable; 
+std::deque<Process> processTable;
 std::vector<CPUCore> cpuCores;
 int nextPID = 1;
 std::string current_process = "";
@@ -31,19 +30,10 @@ std::thread schedulerThread;
 unsigned long long global_tick = 0;
 size_t rrCursor = 0;
 
-
 // === Forward declarations ===
 void scheduler_loop_tick(bool hasActiveWork);
 
 // === Utility functions ===
-std::vector<std::string> tokenize(const std::string& input) {
-    std::istringstream stream(input);
-    std::vector<std::string> tokens;
-    std::string token;
-    while (stream >> token) tokens.push_back(token);
-    return tokens;
-}
-
 std::string trim(const std::string& str) {
     const auto first = str.find_first_not_of(" \t\n\r");
     if (first == std::string::npos) return "";
@@ -51,36 +41,12 @@ std::string trim(const std::string& str) {
     return str.substr(first, last - first + 1);
 }
 
-
-std::vector<std::string> expandForLoops(const std::vector<std::string>& instructions) {
-    std::vector<std::string> result;
-    std::regex forRegex(R"(FOR\(\[([^\]]+)\],\s*(\d+)\))");
-
-    for (const auto& rawInstr : instructions) {
-        std::string instr = trim(rawInstr);
-        std::smatch match;
-        if (std::regex_match(instr, match, forRegex)) {
-            std::string body = match[1];
-            int repeats = std::stoi(match[2]);
-
-            std::vector<std::string> innerInstrs;
-            std::stringstream ss(body);
-            std::string temp;
-            while (std::getline(ss, temp, ';')) {
-                std::string innerTrimmed = trim(temp);
-                if (!innerTrimmed.empty()) innerInstrs.push_back(innerTrimmed);
-            }
-
-            std::vector<std::string> expandedInner = expandForLoops(innerInstrs);
-            for (int i = 0; i < repeats; ++i)
-                result.insert(result.end(), expandedInner.begin(), expandedInner.end());
-        }
-        else if (!instr.empty()) {
-            result.push_back(instr);
-        }
-    }
-
-    return result;
+std::vector<std::string> tokenize(const std::string& input) {
+    std::istringstream stream(input);
+    std::vector<std::string> tokens;
+    std::string token;
+    while (stream >> token) tokens.push_back(token);
+    return tokens;
 }
 
 // Split by '+' but ignore '+' inside single quotes
@@ -115,6 +81,196 @@ std::string unquoteSingle(const std::string& s) {
     return s;
 }
 
+// Resolve a token to either an integer or a variable value
+int resolveValue(Process& p, const std::string& token) {
+    try {
+        return std::stoi(token);
+    }
+    catch (...) {
+
+    }
+
+    if (!p.variables.count(token)) {
+        p.variables[token] = 0;
+    }
+    return p.variables[token];
+}
+
+// === Instruction Implementations ===
+
+class DeclareInstruction : public Instruction {
+    std::string var;
+    int val;
+public:
+    DeclareInstruction(const std::string& v, int value) : var(v), val(value) {}
+    void execute(Process& p) override {
+        p.variables[var] = val;
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "DECLARE(" + var + ", " + std::to_string(val) + ")";
+    }
+};
+
+class AddInstruction : public Instruction {
+    std::string target, op1, op2;
+public:
+    AddInstruction(const std::string& t, const std::string& o1, const std::string& o2)
+        : target(t), op1(o1), op2(o2) {
+    }
+    void execute(Process& p) override {
+        int v1 = resolveValue(p, op1);
+        int v2 = resolveValue(p, op2);
+        p.variables[target] = v1 + v2;
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "ADD(" + target + ", " + op1 + ", " + op2 + ")";
+    }
+};
+
+class SubtractInstruction : public Instruction {
+    std::string target, op1, op2;
+public:
+    SubtractInstruction(const std::string& t, const std::string& o1, const std::string& o2)
+        : target(t), op1(o1), op2(o2) {
+    }
+    void execute(Process& p) override {
+        int v1 = resolveValue(p, op1);
+        int v2 = resolveValue(p, op2);
+        p.variables[target] = v1 - v2;
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "SUBTRACT(" + target + ", " + op1 + ", " + op2 + ")";
+    }
+};
+
+class PrintInstruction : public Instruction {
+    std::string expression;
+public:
+    PrintInstruction(const std::string& expr) : expression(expr) {}
+    void execute(Process& p) override {
+        std::vector<std::string> parts = splitPrintExpr(expression);
+        std::ostringstream out;
+
+        for (auto& part : parts) {
+            if (isSingleQuoted(part)) {
+                out << unquoteSingle(part);
+            }
+            else {
+                try {
+                    int v = std::stoi(part);
+                    out << v;
+                }
+                catch (...) {
+                    int v = resolveValue(p, part);
+                    out << v;
+                }
+            }
+        }
+        p.logs.push_back(out.str());
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "PRINT(" + expression + ")";
+    }
+};
+
+class SleepInstruction : public Instruction {
+    int duration;
+public:
+    SleepInstruction(int d) : duration(d) {}
+    void execute(Process& p) override {
+        p.sleep_counter = duration;
+        p.state = ProcessState::SLEEPING;
+        p.pc++;
+    }
+    std::string toString() const override {
+        return "SLEEP(" + std::to_string(duration) + ")";
+    }
+};
+
+class ForInstruction : public Instruction {
+    std::string body;
+    int repeats;
+public:
+    ForInstruction(const std::string& b, int r) : body(b), repeats(r) {}
+    void execute(Process& p) override;
+    std::string toString() const override {
+        return "FOR([" + body + "], " + std::to_string(repeats) + ")";
+    }
+};
+
+// === Parsing ===
+
+std::shared_ptr<Instruction> parseInstruction(const std::string& line) {
+    std::string instr = trim(line);
+    if (instr.empty()) return nullptr;
+
+    std::smatch match;
+
+    // DECLARE
+    static std::regex declareRegex(R"(DECLARE\((\w+),\s*(-?\d+)\))");
+    if (std::regex_match(instr, match, declareRegex)) {
+        return std::make_shared<DeclareInstruction>(match[1], std::stoi(match[2]));
+    }
+
+    // ADD
+    static std::regex addRegex(R"(ADD\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
+    if (std::regex_match(instr, match, addRegex)) {
+        return std::make_shared<AddInstruction>(match[1], match[2], match[3]);
+    }
+
+    // SUBTRACT
+    static std::regex subRegex(R"(SUBTRACT\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
+    if (std::regex_match(instr, match, subRegex)) {
+        return std::make_shared<SubtractInstruction>(match[1], match[2], match[3]);
+    }
+
+    // PRINT
+    static std::regex printRegex(R"(PRINT\((.*)\))");
+    if (std::regex_match(instr, match, printRegex)) {
+        return std::make_shared<PrintInstruction>(trim(match[1]));
+    }
+
+    // SLEEP
+    static std::regex sleepRegex(R"(SLEEP\((\d+)\))");
+    if (std::regex_match(instr, match, sleepRegex)) {
+        return std::make_shared<SleepInstruction>(std::stoi(match[1]));
+    }
+
+    // FOR
+    static std::regex forRegex(R"(FOR\(\[([^\]]+)\],\s*(\d+)\))");
+    if (std::regex_match(instr, match, forRegex)) {
+        return std::make_shared<ForInstruction>(match[1], std::stoi(match[2]));
+    }
+
+    return nullptr;
+}
+
+void ForInstruction::execute(Process& p) {
+    std::vector<std::shared_ptr<Instruction>> expanded;
+    std::stringstream ss(body);
+    std::string temp;
+    while (std::getline(ss, temp, ';')) {
+        auto inst = parseInstruction(temp);
+        if (inst) expanded.push_back(inst);
+    }
+
+    std::vector<std::shared_ptr<Instruction>> fullExpansion;
+    for (int i = 0; i < repeats; ++i) {
+        for (const auto& inst : expanded) {
+            fullExpansion.push_back(inst);
+        }
+    }
+
+    if (p.pc < p.instructions.size()) {
+        auto it = p.instructions.begin() + p.pc;
+        it = p.instructions.erase(it);
+        p.instructions.insert(it, fullExpansion.begin(), fullExpansion.end());
+    }
+}
 
 // === Config handling ===
 bool generateDefaultConfig(const std::string& filename) {
@@ -205,149 +361,9 @@ Process* findProcess(const std::string& name) {
     return nullptr;
 }
 
-// Resolve a token to either an integer or a variable value
-int resolveValue(Process& p, const std::string& token) {
-    try {
-        return std::stoi(token);
-    }
-    catch (...) {
-       
-    }
-
-    if (!p.variables.count(token)) {
-        p.variables[token] = 0;
-    }
-    return p.variables[token];
-}
-
-// Execute a single instruction for a process
-void executeInstruction(Process& p) {
-    if (p.state == ProcessState::FINISHED) return;
-    if (p.pc >= p.instructions.size()) {
-        p.state = ProcessState::FINISHED;
-        return;
-    }
-
-    std::string instr = p.instructions[p.pc];
-    bool advancePc = true;
-
-    // === DECLARE(var, value) ===
-    if (instr.rfind("DECLARE", 0) == 0) {
-        std::regex re(R"(DECLARE\((\w+),\s*(-?\d+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string var = match[1];
-            int value = std::stoi(match[2]);
-            p.variables[var] = value;
-        }
-    }
-
-    // === ADD(var1, var2/value, var3/value) ===
-    else if (instr.rfind("ADD", 0) == 0) {
-        std::regex re(R"(ADD\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string target = match[1];
-            std::string op1 = match[2];
-            std::string op2 = match[3];
-
-            int val1 = resolveValue(p, op1);
-            int val2 = resolveValue(p, op2);
-            p.variables[target] = val1 + val2;
-        }
-    }
-
-    // === SUBTRACT(var1, var2/value, var3/value) ===
-    else if (instr.rfind("SUBTRACT", 0) == 0) {
-        std::regex re(R"(SUBTRACT\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string target = match[1];
-            std::string op1 = match[2];
-            std::string op2 = match[3];
-
-            int val1 = resolveValue(p, op1);
-            int val2 = resolveValue(p, op2);
-            p.variables[target] = val1 - val2;
-        }
-    }
-
-    // === PRINT('message') ===
-    else if (instr.rfind("PRINT", 0) == 0) {
-        // Match anything inside PRINT(...)
-        std::regex re(R"(PRINT\((.*)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            std::string expr = trim(match[1]);
-
-            // Break the expression by '+' while respecting quoted segments
-            std::vector<std::string> parts = splitPrintExpr(expr);
-            std::ostringstream out;
-
-            for (auto& part : parts) {
-                // If it's a quoted string, append literal content
-                if (isSingleQuoted(part)) {
-                    out << unquoteSingle(part);
-                }
-                else {
-                    try {
-                        // Try integer literal first
-                        int v = std::stoi(part);
-                        out << v;
-                    }
-                    catch (...) {
-                        // Fallback to variable
-                        int v = resolveValue(p, part);
-                        out << v;
-                    }
-                }
-            }
-
-            p.logs.push_back(out.str());
-        }
-    }
-
-
-    // === SLEEP(n) ===
-    else if (instr.rfind("SLEEP", 0) == 0) {
-        std::regex re(R"(SLEEP\((\d+)\))");
-        std::smatch match;
-        if (std::regex_match(instr, match, re)) {
-            int n = std::stoi(match[1]);
-            p.sleep_counter = n;
-            p.state = ProcessState::SLEEPING;
-        }
-    }
-
-    // === FOR([...], repeats) ===
-    else if (instr.rfind("FOR", 0) == 0) {
-        std::vector<std::string> expanded = expandForLoops(std::vector<std::string>{ instr });
-        std::string trimmedInstr = trim(instr);
-        if (expanded.size() != 1 || expanded[0] != trimmedInstr) {
-            p.instructions.erase(p.instructions.begin() + p.pc);
-            p.instructions.insert(p.instructions.begin() + p.pc, expanded.begin(), expanded.end());
-            advancePc = false; // stay on the first expanded instruction for the next tick
-        }
-    }
-
-
-
-    // Advance PC
-    if (advancePc) {
-        p.pc++;
-    }
-
-    if (systemConfig.delays_per_exec > 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(systemConfig.delays_per_exec));
-
-    if (p.pc >= p.instructions.size()) {
-        p.state = ProcessState::FINISHED;
-    }
-}
-
 // Generate dummy instructions for a process 
-std::vector<std::string> generateDummyInstructions(int count) {
-    std::vector<std::string> ins;
+std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count) {
+    std::vector<std::shared_ptr<Instruction>> ins;
     static std::vector<std::string> pool = {
         "DECLARE(x, 5)",
         "DECLARE(y, 10)",
@@ -358,29 +374,58 @@ std::vector<std::string> generateDummyInstructions(int count) {
         "SLEEP(2)",
         "FOR([PRINT('Hello world!')], 2)"
     };
-    for (int i = 0; i < count; ++i)
-        ins.push_back(pool[rand() % pool.size()]);
+    for (int i = 0; i < count; ++i) {
+        std::string line = pool[rand() % pool.size()];
+        auto inst = parseInstruction(line);
+        if (inst) ins.push_back(inst);
+    }
     return ins;
 }
 
-// Generates alternating PRINT and ADD instructions
-std::vector<std::string> generateAlternatingInstructions(int count) {
-    std::vector<std::string> instructions;
-    if (count <= 0) return instructions;
+// Trace function
+void logInstructionTrace(Process& p, const std::shared_ptr<Instruction>& instr) {
+    std::ofstream trace("csopesy-trace.txt", std::ios::app);
+    if (!trace.is_open()) return;
 
-    for (int i = 0; i < count; ++i) {
-        if (i % 2 == 0) {
-            // PRINT instruction
-            instructions.push_back("PRINT('Value from: ' + x)");
-        }
-        else {
-            // ADD instruction with randomized operand between 1 and 10
-            int randomValue = (rand() % 10) + 1;
-            instructions.push_back("ADD(x, x, " + std::to_string(randomValue) + ")");
-        }
+    // Real timestamp
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf{};
+#ifdef _WIN32
+    localtime_s(&tm_buf, &now_time);
+#else
+    localtime_r(&now_time, &tm_buf);
+#endif
+
+    std::ostringstream timestamp;
+    timestamp << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
+
+    // Process state as string
+    std::string stateStr;
+    switch (p.state) {
+    case ProcessState::READY: stateStr = "READY"; break;
+    case ProcessState::RUNNING: stateStr = "RUNNING"; break;
+    case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
+    case ProcessState::FINISHED: stateStr = "FINISHED"; break;
     }
 
-    return instructions;
+    // Combined log entry
+    trace << "[" << timestamp.str() << "] ";
+
+    trace << "[Tick " << global_tick;
+    if (systemConfig.scheduler == "rr" && systemConfig.quantum_cycles > 0) {
+        int quantumPos = (p.pc % systemConfig.quantum_cycles) + 1;
+        trace << " | Q" << quantumPos << "/" << systemConfig.quantum_cycles;
+    }
+    else if (systemConfig.scheduler == "fcfs") {
+        trace << " | FCFS";
+    }
+    trace << "] "
+        << p.name << " [PID " << p.pid << "] pc="
+        << p.pc << "/" << p.instructions.size()
+        << " -> " << instr->toString()
+        << " | State=" << stateStr << "\n";
+    trace.close();
 }
 
 // Ensure the scheduler thread is running
@@ -435,7 +480,6 @@ void ensureSchedulerActive() {
 }
 
 // === COMMANDS ===
-// Some commands are just couts simulating behavior
 // initialize command
 void initializeCommand() {
     if (systemConfig.loaded) {
@@ -637,52 +681,6 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     }
 }
 
-// Trace function
-void logInstructionTrace(Process& p, const std::string& instr) {
-    std::ofstream trace("csopesy-trace.txt", std::ios::app);
-    if (!trace.is_open()) return;
-
-    // Real timestamp
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-    std::tm tm_buf{};
-    #ifdef _WIN32
-        localtime_s(&tm_buf, &now_time);
-    #else
-        localtime_r(&now_time, &tm_buf);
-    #endif
-
-    std::ostringstream timestamp;
-    timestamp << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
-
-    // Process state as string
-    std::string stateStr;
-    switch (p.state) {
-    case ProcessState::READY: stateStr = "READY"; break;
-    case ProcessState::RUNNING: stateStr = "RUNNING"; break;
-    case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
-    case ProcessState::FINISHED: stateStr = "FINISHED"; break;
-    }
-
-    // Combined log entry
-    trace << "[" << timestamp.str() << "] ";
-
-    trace << "[Tick " << global_tick;
-    if (systemConfig.scheduler == "rr" && systemConfig.quantum_cycles > 0) {
-        int quantumPos = (p.pc % systemConfig.quantum_cycles) + 1;
-        trace << " | Q" << quantumPos << "/" << systemConfig.quantum_cycles;
-    }
-    else if (systemConfig.scheduler == "fcfs") {
-        trace << " | FCFS";
-    }
-    trace << "] "
-        << p.name << " [PID " << p.pid << "] pc="
-        << p.pc << "/" << p.instructions.size()
-        << " -> " << instr
-        << " | State=" << stateStr << "\n";
-    trace.close();
-}
-
 // Scheduler-start/stop command handler
 void handleSchedulerCommand(const std::vector<std::string>& args) {
     if (!initialized) {
@@ -808,7 +806,7 @@ void scheduler_loop_tick(bool hasActiveWork) {
         }
     }
 
-	assignReadyToIdleCores();
+    assignReadyToIdleCores();
 
     // === 3. Execute processes on each core ===
     bool rescheduleNeeded = false;
@@ -818,14 +816,21 @@ void scheduler_loop_tick(bool hasActiveWork) {
 
             // Execute one instruction = one tick
             if (p->pc < p->instructions.size()) {
-                logInstructionTrace(*p, p->instructions[p->pc]);
-                executeInstruction(*p);
+                auto currentInstr = p->instructions[p->pc];
+                logInstructionTrace(*p, currentInstr);
+                currentInstr->execute(*p);
+
                 if (systemConfig.scheduler == "rr") {
                     core.quantum_left--;
                 }
 
                 // Handle post-execution logic
                 if (p->state == ProcessState::FINISHED) {
+                    core.running = nullptr;
+                    rescheduleNeeded = true;
+                }
+                else if (p->pc >= p->instructions.size()) {
+                    p->state = ProcessState::FINISHED;
                     core.running = nullptr;
                     rescheduleNeeded = true;
                 }
@@ -867,6 +872,12 @@ void scheduler_loop_tick(bool hasActiveWork) {
                     }
                 }
             }
+            else {
+                // PC out of bounds, finish
+                p->state = ProcessState::FINISHED;
+                core.running = nullptr;
+                rescheduleNeeded = true;
+            }
         }
         else if (!core.running) {
             rescheduleNeeded = true;
@@ -881,10 +892,10 @@ void scheduler_loop_tick(bool hasActiveWork) {
     if (autoCreateRunning.load() &&
         systemConfig.batch_process_freq > 0 &&
         global_tick % systemConfig.batch_process_freq == 0) {
-    
+
         // Only create one process per batch frequency, not potentially multiple
         static unsigned long long lastCreationTick = 0;
-    
+
         static auto lastCreationWallClock = std::chrono::steady_clock::now();
         const auto creationCooldown = std::chrono::milliseconds(100);
 
@@ -897,7 +908,7 @@ void scheduler_loop_tick(bool hasActiveWork) {
             int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
             newProc.instructions = generateDummyInstructions(insCount);
             processTable.push_back(newProc);
-        
+
             lastCreationWallClock = now;
         }
     }
@@ -1011,7 +1022,7 @@ void processSmiCommand() {
         Process* proc = findProcess(current_process);
         if (proc) {
             found = true;
-            procSnapshot = *proc;
+            procSnapshot = *proc; // Copy
         }
     }
 
@@ -1056,23 +1067,6 @@ void processSmiCommand() {
     else {
         std::cout << "Logs: (none)\n";
     }
-
-    // === Display Instructions ===
-    //if (!procSnapshot.instructions.empty()) {
-    //    std::cout << "\nInstructions:\n";
-    //    for (size_t i = 0; i < procSnapshot.instructions.size(); ++i) {
-    //        std::cout << "  [" << std::setw(2) << i << "] ";
-
-    //        // Highlight the current instruction
-    //        if (i == procSnapshot.pc && procSnapshot.state != ProcessState::FINISHED)
-    //            std::cout << ">> " << procSnapshot.instructions[i] << "  <-- current\n";
-    //        else
-    //            std::cout << procSnapshot.instructions[i] << "\n";
-    //    }
-    //}
-    //else {
-    //    std::cout << "\nInstructions: (none)\n";
-    //}
 
     // Finished message
     if (procSnapshot.state == ProcessState::FINISHED)
@@ -1142,7 +1136,9 @@ void inputLoop() {
                     if (p) {
                         found = true;
                         procName = p->name;
-                        executeInstruction(*p);
+                        if (p->pc < p->instructions.size()) {
+                            p->instructions[p->pc]->execute(*p);
+                        }
                         pcAfter = p->pc;
                     }
                 }
