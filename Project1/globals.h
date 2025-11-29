@@ -7,6 +7,8 @@
 #include <memory>
 #include <iostream>
 
+#include "MemoryManager.h"
+
 // === Enums ===
 enum class ConsoleMode { MAIN, PROCESS };
 enum class ProcessState { READY, RUNNING, SLEEPING, FINISHED };
@@ -20,6 +22,13 @@ struct Config {
     int min_ins = 0;
     int max_ins = 0;
     int delays_per_exec = 0;
+    
+    // Memory Config
+    size_t max_overall_mem = 0;
+    size_t mem_per_frame = 0;
+    size_t min_mem_per_proc = 0;
+    size_t max_mem_per_proc = 0;
+
     bool loaded = false;
 };
 
@@ -47,6 +56,10 @@ public:
     int sleep_counter = 0;
     int quantum_used = 0;
     bool needs_cpu = true;
+    
+    // Memory Management
+    int memory_required = 0; // Total memory required in bytes
+    std::unordered_map<int, PageTableEntry> page_table; // page_num -> entry
 
     Process() : pid(-1), state(ProcessState::READY) {}
 };
@@ -73,6 +86,9 @@ extern int nextPID;
 extern std::string current_process;
 extern unsigned long long global_tick;
 extern size_t rrCursor;
+
+// Memory Manager Global
+extern std::unique_ptr<MemoryManager> memoryManager;
 
 
 // === Function declarations ===
