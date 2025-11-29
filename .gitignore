@@ -87,6 +87,8 @@ StyleCopReport.xml
 *.tlb
 *.tli
 *.tlh
+*.tlog
+*.tlog/
 *.tmp
 *.tmp_proj
 *_wpftmp.csproj
