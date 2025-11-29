@@ -12902,3 +12902,950 @@
 [2025-11-28 00:45:58] [Tick 463 | Q4/5] auto_p34 [PID 34] pc=148/5016 -> SUBTRACT(diff, y, x) | State=RUNNING
 [2025-11-28 00:45:58] [Tick 463 | Q1/5] auto_p5 [PID 5] pc=165/5020 -> SUBTRACT(diff, y, x) | State=RUNNING
 [2025-11-28 00:45:58] [Tick 463 | Q3/5] auto_p31 [PID 31] pc=147/5016 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:58] [Tick 1 | Q1/5] p1 [PID 1] pc=0/5000 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:58] [Tick 2 | Q2/5] p1 [PID 1] pc=1/5000 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:58] [Tick 3 | Q3/5] p1 [PID 1] pc=2/5000 -> STORE(1566, 42) | State=RUNNING
+[2025-11-29 19:36:58] [Tick 4 | Q4/5] p1 [PID 1] pc=3/5000 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:58] [Tick 5 | Q5/5] p1 [PID 1] pc=4/5000 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 6 | Q1/5] p1 [PID 1] pc=5/5000 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 8 | Q2/5] p1 [PID 1] pc=6/5000 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 9 | Q2/5] p1 [PID 1] pc=6/5001 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 10 | Q3/5] p1 [PID 1] pc=7/5001 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 11 | Q4/5] p1 [PID 1] pc=8/5001 -> LOAD(1999, val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 12 | Q5/5] p1 [PID 1] pc=9/5001 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 13 | Q1/5] p1 [PID 1] pc=10/5001 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 15 | Q2/5] p1 [PID 1] pc=11/5001 -> LOAD(3990, val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 16 | Q3/5] p1 [PID 1] pc=12/5001 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 17 | Q4/5] p1 [PID 1] pc=13/5001 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 18 | Q5/5] p1 [PID 1] pc=14/5001 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 19 | Q1/5] p1 [PID 1] pc=15/5001 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 20 | Q2/5] p1 [PID 1] pc=16/5001 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 21 | Q3/5] p1 [PID 1] pc=17/5001 -> LOAD(2391, val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 22 | Q4/5] p1 [PID 1] pc=18/5001 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 23 | Q5/5] p1 [PID 1] pc=19/5001 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 24 | Q1/5] p1 [PID 1] pc=20/5001 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 25 | Q2/5] p1 [PID 1] pc=21/5001 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 26 | Q3/5] p1 [PID 1] pc=22/5001 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 27 | Q4/5] p1 [PID 1] pc=23/5001 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 28 | Q5/5] p1 [PID 1] pc=24/5001 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 29 | Q1/5] p1 [PID 1] pc=25/5001 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 30 | Q2/5] p1 [PID 1] pc=26/5001 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 31 | Q3/5] p1 [PID 1] pc=27/5001 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 32 | Q4/5] p1 [PID 1] pc=28/5001 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 33 | Q5/5] p1 [PID 1] pc=29/5001 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 34 | Q1/5] p1 [PID 1] pc=30/5001 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 35 | Q2/5] p1 [PID 1] pc=31/5001 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 36 | Q3/5] p1 [PID 1] pc=32/5001 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 38 | Q4/5] p1 [PID 1] pc=33/5001 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 39 | Q4/5] p1 [PID 1] pc=33/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 40 | Q5/5] p1 [PID 1] pc=34/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 41 | Q1/5] p1 [PID 1] pc=35/5002 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 42 | Q2/5] p1 [PID 1] pc=36/5002 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 44 | Q3/5] p1 [PID 1] pc=37/5002 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 45 | Q4/5] p1 [PID 1] pc=38/5002 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 46 | Q5/5] p1 [PID 1] pc=39/5002 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 47 | Q1/5] p1 [PID 1] pc=40/5002 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 48 | Q2/5] p1 [PID 1] pc=41/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 49 | Q3/5] p1 [PID 1] pc=42/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 50 | Q4/5] p1 [PID 1] pc=43/5002 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 51 | Q5/5] p1 [PID 1] pc=44/5002 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 52 | Q1/5] p1 [PID 1] pc=45/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 53 | Q2/5] p1 [PID 1] pc=46/5002 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 54 | Q3/5] p1 [PID 1] pc=47/5002 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 55 | Q4/5] p1 [PID 1] pc=48/5002 -> LOAD(391, val) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 56 | Q5/5] p1 [PID 1] pc=49/5002 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 57 | Q1/5] p1 [PID 1] pc=50/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 58 | Q2/5] p1 [PID 1] pc=51/5002 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 60 | Q3/5] p1 [PID 1] pc=52/5002 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 61 | Q4/5] p1 [PID 1] pc=53/5002 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 62 | Q5/5] p1 [PID 1] pc=54/5002 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 63 | Q1/5] p1 [PID 1] pc=55/5002 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 64 | Q2/5] p1 [PID 1] pc=56/5002 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 65 | Q3/5] p1 [PID 1] pc=57/5002 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 66 | Q4/5] p1 [PID 1] pc=58/5002 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:36:59] [Tick 67 | Q4/5] p1 [PID 1] pc=58/5003 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 68 | Q5/5] p1 [PID 1] pc=59/5003 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:36:59] [Tick 69 | Q1/5] p1 [PID 1] pc=60/5003 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 70 | Q2/5] p1 [PID 1] pc=61/5003 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 71 | Q3/5] p1 [PID 1] pc=62/5003 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 73 | Q4/5] p1 [PID 1] pc=63/5003 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 74 | Q5/5] p1 [PID 1] pc=64/5003 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 75 | Q1/5] p1 [PID 1] pc=65/5003 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 76 | Q2/5] p1 [PID 1] pc=66/5003 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 77 | Q2/5] p1 [PID 1] pc=66/5004 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 78 | Q3/5] p1 [PID 1] pc=67/5004 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 79 | Q4/5] p1 [PID 1] pc=68/5004 -> LOAD(2486, val) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 80 | Q5/5] p1 [PID 1] pc=69/5004 -> LOAD(2285, val) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 81 | Q1/5] p1 [PID 1] pc=70/5004 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 82 | Q2/5] p1 [PID 1] pc=71/5004 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 84 | Q3/5] p1 [PID 1] pc=72/5004 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 85 | Q4/5] p1 [PID 1] pc=73/5004 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 86 | Q5/5] p1 [PID 1] pc=74/5004 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 88 | Q1/5] p1 [PID 1] pc=75/5004 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 89 | Q2/5] p1 [PID 1] pc=76/5004 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 90 | Q3/5] p1 [PID 1] pc=77/5004 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 91 | Q4/5] p1 [PID 1] pc=78/5004 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 92 | Q5/5] p1 [PID 1] pc=79/5004 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 93 | Q1/5] p1 [PID 1] pc=80/5004 -> STORE(138, 42) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 94 | Q2/5] p1 [PID 1] pc=81/5004 -> LOAD(2983, val) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 95 | Q3/5] p1 [PID 1] pc=82/5004 -> STORE(3272, 42) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 96 | Q4/5] p1 [PID 1] pc=83/5004 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 97 | Q4/5] p1 [PID 1] pc=83/5005 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 98 | Q5/5] p1 [PID 1] pc=84/5005 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 99 | Q1/5] p1 [PID 1] pc=85/5005 -> STORE(2640, 42) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 100 | Q2/5] p1 [PID 1] pc=86/5005 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 101 | Q3/5] p1 [PID 1] pc=87/5005 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 102 | Q4/5] p1 [PID 1] pc=88/5005 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 103 | Q5/5] p1 [PID 1] pc=89/5005 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 104 | Q1/5] p1 [PID 1] pc=90/5005 -> LOAD(3985, val) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 105 | Q2/5] p1 [PID 1] pc=91/5005 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 106 | Q3/5] p1 [PID 1] pc=92/5005 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 107 | Q4/5] p1 [PID 1] pc=93/5005 -> STORE(1954, 42) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 108 | Q5/5] p1 [PID 1] pc=94/5005 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 110 | Q1/5] p1 [PID 1] pc=95/5005 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 111 | Q2/5] p1 [PID 1] pc=96/5005 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 112 | Q3/5] p1 [PID 1] pc=97/5005 -> STORE(3490, 42) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 113 | Q4/5] p1 [PID 1] pc=98/5005 -> STORE(3761, 42) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 114 | Q5/5] p1 [PID 1] pc=99/5005 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 116 | Q1/5] p1 [PID 1] pc=100/5005 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 117 | Q1/5] p1 [PID 1] pc=100/5006 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 118 | Q2/5] p1 [PID 1] pc=101/5006 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 119 | Q3/5] p1 [PID 1] pc=102/5006 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 120 | Q4/5] p1 [PID 1] pc=103/5006 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 121 | Q5/5] p1 [PID 1] pc=104/5006 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 122 | Q1/5] p1 [PID 1] pc=105/5006 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 123 | Q2/5] p1 [PID 1] pc=106/5006 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 124 | Q3/5] p1 [PID 1] pc=107/5006 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 125 | Q4/5] p1 [PID 1] pc=108/5006 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 126 | Q5/5] p1 [PID 1] pc=109/5006 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 127 | Q5/5] p1 [PID 1] pc=109/5007 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 128 | Q1/5] p1 [PID 1] pc=110/5007 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:00] [Tick 129 | Q2/5] p1 [PID 1] pc=111/5007 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 130 | Q3/5] p1 [PID 1] pc=112/5007 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 132 | Q4/5] p1 [PID 1] pc=113/5007 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 133 | Q5/5] p1 [PID 1] pc=114/5007 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:00] [Tick 134 | Q1/5] p1 [PID 1] pc=115/5007 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 135 | Q2/5] p1 [PID 1] pc=116/5007 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 136 | Q3/5] p1 [PID 1] pc=117/5007 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 137 | Q4/5] p1 [PID 1] pc=118/5007 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 138 | Q4/5] p1 [PID 1] pc=118/5008 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 139 | Q5/5] p1 [PID 1] pc=119/5008 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 140 | Q1/5] p1 [PID 1] pc=120/5008 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 142 | Q2/5] p1 [PID 1] pc=121/5008 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 143 | Q3/5] p1 [PID 1] pc=122/5008 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 144 | Q4/5] p1 [PID 1] pc=123/5008 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 146 | Q5/5] p1 [PID 1] pc=124/5008 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 148 | Q1/5] p1 [PID 1] pc=125/5008 -> STORE(3983, 42) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 149 | Q2/5] p1 [PID 1] pc=126/5008 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 150 | Q3/5] p1 [PID 1] pc=127/5008 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 152 | Q4/5] p1 [PID 1] pc=128/5008 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 153 | Q4/5] p1 [PID 1] pc=128/5009 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 154 | Q5/5] p1 [PID 1] pc=129/5009 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 155 | Q1/5] p1 [PID 1] pc=130/5009 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 157 | Q2/5] p1 [PID 1] pc=131/5009 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 158 | Q3/5] p1 [PID 1] pc=132/5009 -> LOAD(266, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 159 | Q4/5] p1 [PID 1] pc=133/5009 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 160 | Q5/5] p1 [PID 1] pc=134/5009 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 161 | Q5/5] p1 [PID 1] pc=134/5010 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 162 | Q1/5] p1 [PID 1] pc=135/5010 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 163 | Q2/5] p1 [PID 1] pc=136/5010 -> LOAD(2444, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 164 | Q3/5] p1 [PID 1] pc=137/5010 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 165 | Q3/5] p1 [PID 1] pc=137/5011 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 166 | Q4/5] p1 [PID 1] pc=138/5011 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 167 | Q5/5] p1 [PID 1] pc=139/5011 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 168 | Q1/5] p1 [PID 1] pc=140/5011 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 169 | Q2/5] p1 [PID 1] pc=141/5011 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 170 | Q3/5] p1 [PID 1] pc=142/5011 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 172 | Q4/5] p1 [PID 1] pc=143/5011 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 173 | Q4/5] p1 [PID 1] pc=143/5012 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 174 | Q5/5] p1 [PID 1] pc=144/5012 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 175 | Q1/5] p1 [PID 1] pc=145/5012 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 176 | Q2/5] p1 [PID 1] pc=146/5012 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 177 | Q3/5] p1 [PID 1] pc=147/5012 -> LOAD(78, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 178 | Q4/5] p1 [PID 1] pc=148/5012 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 179 | Q5/5] p1 [PID 1] pc=149/5012 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 180 | Q1/5] p1 [PID 1] pc=150/5012 -> LOAD(1975, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 181 | Q2/5] p1 [PID 1] pc=151/5012 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 183 | Q3/5] p1 [PID 1] pc=152/5012 -> LOAD(1442, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 184 | Q4/5] p1 [PID 1] pc=153/5012 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 185 | Q5/5] p1 [PID 1] pc=154/5012 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 186 | Q5/5] p1 [PID 1] pc=154/5013 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 187 | Q1/5] p1 [PID 1] pc=155/5013 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 188 | Q2/5] p1 [PID 1] pc=156/5013 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 189 | Q2/5] p1 [PID 1] pc=156/5014 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 190 | Q3/5] p1 [PID 1] pc=157/5014 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 191 | Q4/5] p1 [PID 1] pc=158/5014 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:01] [Tick 192 | Q5/5] p1 [PID 1] pc=159/5014 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 193 | Q1/5] p1 [PID 1] pc=160/5014 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 194 | Q2/5] p1 [PID 1] pc=161/5014 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 195 | Q3/5] p1 [PID 1] pc=162/5014 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 196 | Q4/5] p1 [PID 1] pc=163/5014 -> LOAD(862, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 197 | Q5/5] p1 [PID 1] pc=164/5014 -> LOAD(2337, val) | State=RUNNING
+[2025-11-29 19:37:01] [Tick 198 | Q1/5] p1 [PID 1] pc=165/5014 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 199 | Q1/5] p1 [PID 1] pc=165/5015 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 200 | Q2/5] p1 [PID 1] pc=166/5015 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 201 | Q3/5] p1 [PID 1] pc=167/5015 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 202 | Q4/5] p1 [PID 1] pc=168/5015 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 204 | Q5/5] p1 [PID 1] pc=169/5015 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 205 | Q1/5] p1 [PID 1] pc=170/5015 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 206 | Q2/5] p1 [PID 1] pc=171/5015 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 207 | Q3/5] p1 [PID 1] pc=172/5015 -> LOAD(3867, val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 208 | Q4/5] p1 [PID 1] pc=173/5015 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 209 | Q5/5] p1 [PID 1] pc=174/5015 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 210 | Q1/5] p1 [PID 1] pc=175/5015 -> LOAD(2207, val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 211 | Q2/5] p1 [PID 1] pc=176/5015 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 212 | Q3/5] p1 [PID 1] pc=177/5015 -> STORE(1461, 42) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 213 | Q4/5] p1 [PID 1] pc=178/5015 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 214 | Q5/5] p1 [PID 1] pc=179/5015 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 215 | Q1/5] p1 [PID 1] pc=180/5015 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 216 | Q2/5] p1 [PID 1] pc=181/5015 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 217 | Q2/5] p1 [PID 1] pc=181/5016 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 218 | Q3/5] p1 [PID 1] pc=182/5016 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 219 | Q4/5] p1 [PID 1] pc=183/5016 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 220 | Q5/5] p1 [PID 1] pc=184/5016 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 221 | Q1/5] p1 [PID 1] pc=185/5016 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 222 | Q2/5] p1 [PID 1] pc=186/5016 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 223 | Q3/5] p1 [PID 1] pc=187/5016 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 224 | Q4/5] p1 [PID 1] pc=188/5016 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 225 | Q5/5] p1 [PID 1] pc=189/5016 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 226 | Q1/5] p1 [PID 1] pc=190/5016 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 227 | Q2/5] p1 [PID 1] pc=191/5016 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 228 | Q3/5] p1 [PID 1] pc=192/5016 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 229 | Q4/5] p1 [PID 1] pc=193/5016 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 230 | Q5/5] p1 [PID 1] pc=194/5016 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 231 | Q1/5] p1 [PID 1] pc=195/5016 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 232 | Q2/5] p1 [PID 1] pc=196/5016 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 233 | Q3/5] p1 [PID 1] pc=197/5016 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 234 | Q4/5] p1 [PID 1] pc=198/5016 -> STORE(1216, 42) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 235 | Q5/5] p1 [PID 1] pc=199/5016 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 236 | Q1/5] p1 [PID 1] pc=200/5016 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 237 | Q1/5] p1 [PID 1] pc=200/5017 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 238 | Q2/5] p1 [PID 1] pc=201/5017 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 239 | Q3/5] p1 [PID 1] pc=202/5017 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 241 | Q4/5] p1 [PID 1] pc=203/5017 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 242 | Q5/5] p1 [PID 1] pc=204/5017 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 243 | Q1/5] p1 [PID 1] pc=205/5017 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 244 | Q2/5] p1 [PID 1] pc=206/5017 -> LOAD(419, val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 245 | Q3/5] p1 [PID 1] pc=207/5017 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 246 | Q3/5] p1 [PID 1] pc=207/5018 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 247 | Q4/5] p1 [PID 1] pc=208/5018 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 248 | Q5/5] p1 [PID 1] pc=209/5018 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 249 | Q1/5] p1 [PID 1] pc=210/5018 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 250 | Q2/5] p1 [PID 1] pc=211/5018 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 251 | Q3/5] p1 [PID 1] pc=212/5018 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 253 | Q4/5] p1 [PID 1] pc=213/5018 -> LOAD(537, val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 254 | Q5/5] p1 [PID 1] pc=214/5018 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 255 | Q1/5] p1 [PID 1] pc=215/5018 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 256 | Q2/5] p1 [PID 1] pc=216/5018 -> LOAD(2260, val) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 257 | Q3/5] p1 [PID 1] pc=217/5018 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 258 | Q4/5] p1 [PID 1] pc=218/5018 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 259 | Q4/5] p1 [PID 1] pc=218/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 260 | Q5/5] p1 [PID 1] pc=219/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:02] [Tick 261 | Q1/5] p1 [PID 1] pc=220/5019 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:02] [Tick 262 | Q2/5] p1 [PID 1] pc=221/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 263 | Q3/5] p1 [PID 1] pc=222/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 264 | Q4/5] p1 [PID 1] pc=223/5019 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 265 | Q5/5] p1 [PID 1] pc=224/5019 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 266 | Q1/5] p1 [PID 1] pc=225/5019 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 267 | Q2/5] p1 [PID 1] pc=226/5019 -> STORE(2797, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 268 | Q3/5] p1 [PID 1] pc=227/5019 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 269 | Q4/5] p1 [PID 1] pc=228/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 270 | Q5/5] p1 [PID 1] pc=229/5019 -> LOAD(3370, val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 271 | Q1/5] p1 [PID 1] pc=230/5019 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 272 | Q2/5] p1 [PID 1] pc=231/5019 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 273 | Q3/5] p1 [PID 1] pc=232/5019 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 274 | Q4/5] p1 [PID 1] pc=233/5019 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 275 | Q5/5] p1 [PID 1] pc=234/5019 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 277 | Q1/5] p1 [PID 1] pc=235/5019 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 279 | Q2/5] p1 [PID 1] pc=236/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 280 | Q3/5] p1 [PID 1] pc=237/5019 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 281 | Q4/5] p1 [PID 1] pc=238/5019 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 282 | Q5/5] p1 [PID 1] pc=239/5019 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 283 | Q1/5] p1 [PID 1] pc=240/5019 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 284 | Q2/5] p1 [PID 1] pc=241/5019 -> LOAD(2594, val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 285 | Q3/5] p1 [PID 1] pc=242/5019 -> STORE(3459, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 286 | Q4/5] p1 [PID 1] pc=243/5019 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 287 | Q5/5] p1 [PID 1] pc=244/5019 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 288 | Q1/5] p1 [PID 1] pc=245/5019 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 289 | Q1/5] p1 [PID 1] pc=245/5020 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 290 | Q2/5] p1 [PID 1] pc=246/5020 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 291 | Q3/5] p1 [PID 1] pc=247/5020 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 292 | Q4/5] p1 [PID 1] pc=248/5020 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 293 | Q5/5] p1 [PID 1] pc=249/5020 -> STORE(808, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 294 | Q1/5] p1 [PID 1] pc=250/5020 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 295 | Q2/5] p1 [PID 1] pc=251/5020 -> LOAD(2079, val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 296 | Q3/5] p1 [PID 1] pc=252/5020 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 297 | Q4/5] p1 [PID 1] pc=253/5020 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 298 | Q5/5] p1 [PID 1] pc=254/5020 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 299 | Q1/5] p1 [PID 1] pc=255/5020 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 300 | Q2/5] p1 [PID 1] pc=256/5020 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 301 | Q3/5] p1 [PID 1] pc=257/5020 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 302 | Q4/5] p1 [PID 1] pc=258/5020 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 303 | Q5/5] p1 [PID 1] pc=259/5020 -> STORE(313, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 304 | Q1/5] p1 [PID 1] pc=260/5020 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 305 | Q2/5] p1 [PID 1] pc=261/5020 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 306 | Q3/5] p1 [PID 1] pc=262/5020 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 307 | Q4/5] p1 [PID 1] pc=263/5020 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 308 | Q5/5] p1 [PID 1] pc=264/5020 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 309 | Q1/5] p1 [PID 1] pc=265/5020 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 310 | Q2/5] p1 [PID 1] pc=266/5020 -> STORE(990, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 311 | Q3/5] p1 [PID 1] pc=267/5020 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 312 | Q4/5] p1 [PID 1] pc=268/5020 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 314 | Q5/5] p1 [PID 1] pc=269/5020 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 315 | Q1/5] p1 [PID 1] pc=270/5020 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 316 | Q2/5] p1 [PID 1] pc=271/5020 -> STORE(990, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 317 | Q3/5] p1 [PID 1] pc=272/5020 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 318 | Q4/5] p1 [PID 1] pc=273/5020 -> STORE(4043, 42) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 319 | Q5/5] p1 [PID 1] pc=274/5020 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 320 | Q1/5] p1 [PID 1] pc=275/5020 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 321 | Q1/5] p1 [PID 1] pc=275/5021 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 322 | Q2/5] p1 [PID 1] pc=276/5021 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 323 | Q3/5] p1 [PID 1] pc=277/5021 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 324 | Q3/5] p1 [PID 1] pc=277/5022 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 325 | Q4/5] p1 [PID 1] pc=278/5022 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:03] [Tick 326 | Q5/5] p1 [PID 1] pc=279/5022 -> LOAD(1564, val) | State=RUNNING
+[2025-11-29 19:37:03] [Tick 327 | Q1/5] p1 [PID 1] pc=280/5022 -> STORE(2822, 42) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 328 | Q2/5] p1 [PID 1] pc=281/5022 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 329 | Q3/5] p1 [PID 1] pc=282/5022 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 330 | Q4/5] p1 [PID 1] pc=283/5022 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 331 | Q4/5] p1 [PID 1] pc=283/5023 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 332 | Q5/5] p1 [PID 1] pc=284/5023 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 333 | Q1/5] p1 [PID 1] pc=285/5023 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 334 | Q2/5] p1 [PID 1] pc=286/5023 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 335 | Q2/5] p1 [PID 1] pc=286/5024 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 336 | Q3/5] p1 [PID 1] pc=287/5024 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 337 | Q4/5] p1 [PID 1] pc=288/5024 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 338 | Q5/5] p1 [PID 1] pc=289/5024 -> STORE(606, 42) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 339 | Q1/5] p1 [PID 1] pc=290/5024 -> LOAD(2513, val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 340 | Q2/5] p1 [PID 1] pc=291/5024 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 341 | Q3/5] p1 [PID 1] pc=292/5024 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 342 | Q4/5] p1 [PID 1] pc=293/5024 -> STORE(3477, 42) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 343 | Q5/5] p1 [PID 1] pc=294/5024 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 344 | Q1/5] p1 [PID 1] pc=295/5024 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 345 | Q2/5] p1 [PID 1] pc=296/5024 -> LOAD(2291, val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 346 | Q3/5] p1 [PID 1] pc=297/5024 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 347 | Q4/5] p1 [PID 1] pc=298/5024 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 348 | Q5/5] p1 [PID 1] pc=299/5024 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 349 | Q1/5] p1 [PID 1] pc=300/5024 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 350 | Q2/5] p1 [PID 1] pc=301/5024 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 351 | Q3/5] p1 [PID 1] pc=302/5024 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 352 | Q3/5] p1 [PID 1] pc=302/5025 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 353 | Q4/5] p1 [PID 1] pc=303/5025 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 354 | Q5/5] p1 [PID 1] pc=304/5025 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 355 | Q1/5] p1 [PID 1] pc=305/5025 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 356 | Q2/5] p1 [PID 1] pc=306/5025 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 357 | Q3/5] p1 [PID 1] pc=307/5025 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 358 | Q4/5] p1 [PID 1] pc=308/5025 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 359 | Q5/5] p1 [PID 1] pc=309/5025 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 360 | Q5/5] p1 [PID 1] pc=309/5026 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 361 | Q1/5] p1 [PID 1] pc=310/5026 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 362 | Q2/5] p1 [PID 1] pc=311/5026 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 363 | Q3/5] p1 [PID 1] pc=312/5026 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 364 | Q4/5] p1 [PID 1] pc=313/5026 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 365 | Q5/5] p1 [PID 1] pc=314/5026 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 366 | Q1/5] p1 [PID 1] pc=315/5026 -> LOAD(3037, val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 367 | Q2/5] p1 [PID 1] pc=316/5026 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 368 | Q2/5] p1 [PID 1] pc=316/5027 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 369 | Q3/5] p1 [PID 1] pc=317/5027 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 370 | Q4/5] p1 [PID 1] pc=318/5027 -> LOAD(3277, val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 371 | Q5/5] p1 [PID 1] pc=319/5027 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 372 | Q5/5] p1 [PID 1] pc=319/5028 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 373 | Q1/5] p1 [PID 1] pc=320/5028 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 374 | Q2/5] p1 [PID 1] pc=321/5028 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 375 | Q3/5] p1 [PID 1] pc=322/5028 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 376 | Q4/5] p1 [PID 1] pc=323/5028 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 377 | Q5/5] p1 [PID 1] pc=324/5028 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 378 | Q1/5] p1 [PID 1] pc=325/5028 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 380 | Q2/5] p1 [PID 1] pc=326/5028 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 381 | Q2/5] p1 [PID 1] pc=326/5029 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 382 | Q3/5] p1 [PID 1] pc=327/5029 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 383 | Q4/5] p1 [PID 1] pc=328/5029 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 384 | Q5/5] p1 [PID 1] pc=329/5029 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 385 | Q5/5] p1 [PID 1] pc=329/5030 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 386 | Q1/5] p1 [PID 1] pc=330/5030 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:04] [Tick 387 | Q2/5] p1 [PID 1] pc=331/5030 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 388 | Q3/5] p1 [PID 1] pc=332/5030 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 389 | Q4/5] p1 [PID 1] pc=333/5030 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 390 | Q5/5] p1 [PID 1] pc=334/5030 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:04] [Tick 391 | Q1/5] p1 [PID 1] pc=335/5030 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 392 | Q2/5] p1 [PID 1] pc=336/5030 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 393 | Q3/5] p1 [PID 1] pc=337/5030 -> LOAD(3002, val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 394 | Q4/5] p1 [PID 1] pc=338/5030 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 396 | Q5/5] p1 [PID 1] pc=339/5030 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 397 | Q1/5] p1 [PID 1] pc=340/5030 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 398 | Q2/5] p1 [PID 1] pc=341/5030 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 399 | Q3/5] p1 [PID 1] pc=342/5030 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 400 | Q4/5] p1 [PID 1] pc=343/5030 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 401 | Q5/5] p1 [PID 1] pc=344/5030 -> LOAD(2352, val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 402 | Q1/5] p1 [PID 1] pc=345/5030 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 403 | Q2/5] p1 [PID 1] pc=346/5030 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 404 | Q3/5] p1 [PID 1] pc=347/5030 -> STORE(3717, 42) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 405 | Q4/5] p1 [PID 1] pc=348/5030 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 406 | Q4/5] p1 [PID 1] pc=348/5031 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 407 | Q5/5] p1 [PID 1] pc=349/5031 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 408 | Q1/5] p1 [PID 1] pc=350/5031 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 409 | Q2/5] p1 [PID 1] pc=351/5031 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 410 | Q3/5] p1 [PID 1] pc=352/5031 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 411 | Q4/5] p1 [PID 1] pc=353/5031 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 412 | Q5/5] p1 [PID 1] pc=354/5031 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 413 | Q1/5] p1 [PID 1] pc=355/5031 -> STORE(530, 42) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 414 | Q2/5] p1 [PID 1] pc=356/5031 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 415 | Q3/5] p1 [PID 1] pc=357/5031 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 416 | Q4/5] p1 [PID 1] pc=358/5031 -> LOAD(2898, val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 417 | Q5/5] p1 [PID 1] pc=359/5031 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 418 | Q1/5] p1 [PID 1] pc=360/5031 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 419 | Q2/5] p1 [PID 1] pc=361/5031 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 420 | Q3/5] p1 [PID 1] pc=362/5031 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 422 | Q4/5] p1 [PID 1] pc=363/5031 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 423 | Q4/5] p1 [PID 1] pc=363/5032 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 424 | Q5/5] p1 [PID 1] pc=364/5032 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 425 | Q1/5] p1 [PID 1] pc=365/5032 -> STORE(829, 42) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 426 | Q2/5] p1 [PID 1] pc=366/5032 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 427 | Q3/5] p1 [PID 1] pc=367/5032 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 428 | Q3/5] p1 [PID 1] pc=367/5033 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 429 | Q4/5] p1 [PID 1] pc=368/5033 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 430 | Q5/5] p1 [PID 1] pc=369/5033 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 431 | Q1/5] p1 [PID 1] pc=370/5033 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 432 | Q2/5] p1 [PID 1] pc=371/5033 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 433 | Q3/5] p1 [PID 1] pc=372/5033 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 434 | Q4/5] p1 [PID 1] pc=373/5033 -> STORE(198, 42) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 435 | Q5/5] p1 [PID 1] pc=374/5033 -> LOAD(3419, val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 436 | Q1/5] p1 [PID 1] pc=375/5033 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 438 | Q2/5] p1 [PID 1] pc=376/5033 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 439 | Q2/5] p1 [PID 1] pc=376/5034 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 440 | Q3/5] p1 [PID 1] pc=377/5034 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:05] [Tick 441 | Q4/5] p1 [PID 1] pc=378/5034 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 442 | Q5/5] p1 [PID 1] pc=379/5034 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 444 | Q1/5] p1 [PID 1] pc=380/5034 -> STORE(3692, 42) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 445 | Q2/5] p1 [PID 1] pc=381/5034 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 446 | Q3/5] p1 [PID 1] pc=382/5034 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 447 | Q4/5] p1 [PID 1] pc=383/5034 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 448 | Q5/5] p1 [PID 1] pc=384/5034 -> STORE(2006, 42) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 449 | Q1/5] p1 [PID 1] pc=385/5034 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 451 | Q2/5] p1 [PID 1] pc=386/5034 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 452 | Q3/5] p1 [PID 1] pc=387/5034 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 453 | Q4/5] p1 [PID 1] pc=388/5034 -> LOAD(1241, val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 454 | Q5/5] p1 [PID 1] pc=389/5034 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 455 | Q1/5] p1 [PID 1] pc=390/5034 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:05] [Tick 456 | Q2/5] p1 [PID 1] pc=391/5034 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 457 | Q3/5] p1 [PID 1] pc=392/5034 -> STORE(969, 42) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 458 | Q4/5] p1 [PID 1] pc=393/5034 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 459 | Q5/5] p1 [PID 1] pc=394/5034 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 460 | Q1/5] p1 [PID 1] pc=395/5034 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 461 | Q2/5] p1 [PID 1] pc=396/5034 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 462 | Q3/5] p1 [PID 1] pc=397/5034 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 463 | Q4/5] p1 [PID 1] pc=398/5034 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 464 | Q5/5] p1 [PID 1] pc=399/5034 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 465 | Q1/5] p1 [PID 1] pc=400/5034 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 466 | Q2/5] p1 [PID 1] pc=401/5034 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 467 | Q2/5] p1 [PID 1] pc=401/5035 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 468 | Q3/5] p1 [PID 1] pc=402/5035 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 469 | Q4/5] p1 [PID 1] pc=403/5035 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 470 | Q5/5] p1 [PID 1] pc=404/5035 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 471 | Q1/5] p1 [PID 1] pc=405/5035 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 472 | Q1/5] p1 [PID 1] pc=405/5036 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 473 | Q2/5] p1 [PID 1] pc=406/5036 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 474 | Q3/5] p1 [PID 1] pc=407/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 476 | Q4/5] p1 [PID 1] pc=408/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 478 | Q5/5] p1 [PID 1] pc=409/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 480 | Q1/5] p1 [PID 1] pc=410/5036 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 481 | Q2/5] p1 [PID 1] pc=411/5036 -> STORE(2640, 42) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 482 | Q3/5] p1 [PID 1] pc=412/5036 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 483 | Q4/5] p1 [PID 1] pc=413/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 485 | Q5/5] p1 [PID 1] pc=414/5036 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 486 | Q1/5] p1 [PID 1] pc=415/5036 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 487 | Q2/5] p1 [PID 1] pc=416/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 489 | Q3/5] p1 [PID 1] pc=417/5036 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 490 | Q4/5] p1 [PID 1] pc=418/5036 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 491 | Q5/5] p1 [PID 1] pc=419/5036 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 492 | Q1/5] p1 [PID 1] pc=420/5036 -> LOAD(913, val) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 493 | Q2/5] p1 [PID 1] pc=421/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 495 | Q3/5] p1 [PID 1] pc=422/5036 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 497 | Q4/5] p1 [PID 1] pc=423/5036 -> LOAD(333, val) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 498 | Q5/5] p1 [PID 1] pc=424/5036 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 499 | Q1/5] p1 [PID 1] pc=425/5036 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 500 | Q2/5] p1 [PID 1] pc=426/5036 -> LOAD(3551, val) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 501 | Q3/5] p1 [PID 1] pc=427/5036 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 502 | Q4/5] p1 [PID 1] pc=428/5036 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 503 | Q4/5] p1 [PID 1] pc=428/5037 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 504 | Q5/5] p1 [PID 1] pc=429/5037 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 505 | Q1/5] p1 [PID 1] pc=430/5037 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 506 | Q2/5] p1 [PID 1] pc=431/5037 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 507 | Q3/5] p1 [PID 1] pc=432/5037 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 508 | Q4/5] p1 [PID 1] pc=433/5037 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 509 | Q4/5] p1 [PID 1] pc=433/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 510 | Q5/5] p1 [PID 1] pc=434/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:06] [Tick 511 | Q1/5] p1 [PID 1] pc=435/5038 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 512 | Q2/5] p1 [PID 1] pc=436/5038 -> STORE(1914, 42) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 513 | Q3/5] p1 [PID 1] pc=437/5038 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 515 | Q4/5] p1 [PID 1] pc=438/5038 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 516 | Q5/5] p1 [PID 1] pc=439/5038 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 518 | Q1/5] p1 [PID 1] pc=440/5038 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 519 | Q2/5] p1 [PID 1] pc=441/5038 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:06] [Tick 520 | Q3/5] p1 [PID 1] pc=442/5038 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 521 | Q4/5] p1 [PID 1] pc=443/5038 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 522 | Q5/5] p1 [PID 1] pc=444/5038 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 523 | Q1/5] p1 [PID 1] pc=445/5038 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 524 | Q2/5] p1 [PID 1] pc=446/5038 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 525 | Q3/5] p1 [PID 1] pc=447/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 526 | Q4/5] p1 [PID 1] pc=448/5038 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 527 | Q5/5] p1 [PID 1] pc=449/5038 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 528 | Q1/5] p1 [PID 1] pc=450/5038 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 529 | Q2/5] p1 [PID 1] pc=451/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 530 | Q3/5] p1 [PID 1] pc=452/5038 -> STORE(2, 42) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 531 | Q4/5] p1 [PID 1] pc=453/5038 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 533 | Q5/5] p1 [PID 1] pc=454/5038 -> STORE(2584, 42) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 534 | Q1/5] p1 [PID 1] pc=455/5038 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 536 | Q2/5] p1 [PID 1] pc=456/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 537 | Q3/5] p1 [PID 1] pc=457/5038 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 538 | Q4/5] p1 [PID 1] pc=458/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 539 | Q5/5] p1 [PID 1] pc=459/5038 -> LOAD(1005, val) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 540 | Q1/5] p1 [PID 1] pc=460/5038 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 541 | Q2/5] p1 [PID 1] pc=461/5038 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 542 | Q3/5] p1 [PID 1] pc=462/5038 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 543 | Q3/5] p1 [PID 1] pc=462/5039 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 544 | Q4/5] p1 [PID 1] pc=463/5039 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 545 | Q5/5] p1 [PID 1] pc=464/5039 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 546 | Q5/5] p1 [PID 1] pc=464/5040 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 547 | Q1/5] p1 [PID 1] pc=465/5040 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 548 | Q2/5] p1 [PID 1] pc=466/5040 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 549 | Q3/5] p1 [PID 1] pc=467/5040 -> LOAD(3466, val) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 550 | Q4/5] p1 [PID 1] pc=468/5040 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 551 | Q5/5] p1 [PID 1] pc=469/5040 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 552 | Q1/5] p1 [PID 1] pc=470/5040 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 553 | Q2/5] p1 [PID 1] pc=471/5040 -> STORE(719, 42) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 554 | Q3/5] p1 [PID 1] pc=472/5040 -> STORE(3116, 42) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 555 | Q4/5] p1 [PID 1] pc=473/5040 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 556 | Q5/5] p1 [PID 1] pc=474/5040 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 557 | Q1/5] p1 [PID 1] pc=475/5040 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 559 | Q2/5] p1 [PID 1] pc=476/5040 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 560 | Q3/5] p1 [PID 1] pc=477/5040 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 561 | Q4/5] p1 [PID 1] pc=478/5040 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 562 | Q5/5] p1 [PID 1] pc=479/5040 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 563 | Q1/5] p1 [PID 1] pc=480/5040 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 564 | Q2/5] p1 [PID 1] pc=481/5040 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 565 | Q2/5] p1 [PID 1] pc=481/5041 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 566 | Q3/5] p1 [PID 1] pc=482/5041 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 567 | Q4/5] p1 [PID 1] pc=483/5041 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 568 | Q5/5] p1 [PID 1] pc=484/5041 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 569 | Q1/5] p1 [PID 1] pc=485/5041 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 570 | Q2/5] p1 [PID 1] pc=486/5041 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 572 | Q3/5] p1 [PID 1] pc=487/5041 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 574 | Q4/5] p1 [PID 1] pc=488/5041 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 575 | Q5/5] p1 [PID 1] pc=489/5041 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 576 | Q1/5] p1 [PID 1] pc=490/5041 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 577 | Q2/5] p1 [PID 1] pc=491/5041 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:07] [Tick 578 | Q3/5] p1 [PID 1] pc=492/5041 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 580 | Q4/5] p1 [PID 1] pc=493/5041 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 581 | Q5/5] p1 [PID 1] pc=494/5041 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 582 | Q1/5] p1 [PID 1] pc=495/5041 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 583 | Q2/5] p1 [PID 1] pc=496/5041 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 584 | Q3/5] p1 [PID 1] pc=497/5041 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:07] [Tick 585 | Q4/5] p1 [PID 1] pc=498/5041 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 586 | Q4/5] p1 [PID 1] pc=498/5042 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 587 | Q5/5] p1 [PID 1] pc=499/5042 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 588 | Q1/5] p1 [PID 1] pc=500/5042 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 589 | Q2/5] p1 [PID 1] pc=501/5042 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 590 | Q2/5] p1 [PID 1] pc=501/5043 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 591 | Q3/5] p1 [PID 1] pc=502/5043 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 592 | Q4/5] p1 [PID 1] pc=503/5043 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 593 | Q5/5] p1 [PID 1] pc=504/5043 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 594 | Q1/5] p1 [PID 1] pc=505/5043 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 595 | Q2/5] p1 [PID 1] pc=506/5043 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 596 | Q2/5] p1 [PID 1] pc=506/5044 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 597 | Q3/5] p1 [PID 1] pc=507/5044 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 598 | Q4/5] p1 [PID 1] pc=508/5044 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 599 | Q5/5] p1 [PID 1] pc=509/5044 -> STORE(2454, 42) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 600 | Q1/5] p1 [PID 1] pc=510/5044 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 601 | Q2/5] p1 [PID 1] pc=511/5044 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 602 | Q3/5] p1 [PID 1] pc=512/5044 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 603 | Q3/5] p1 [PID 1] pc=512/5045 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 604 | Q4/5] p1 [PID 1] pc=513/5045 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 605 | Q5/5] p1 [PID 1] pc=514/5045 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 606 | Q1/5] p1 [PID 1] pc=515/5045 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 607 | Q2/5] p1 [PID 1] pc=516/5045 -> LOAD(1289, val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 608 | Q3/5] p1 [PID 1] pc=517/5045 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 609 | Q4/5] p1 [PID 1] pc=518/5045 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 611 | Q5/5] p1 [PID 1] pc=519/5045 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 613 | Q1/5] p1 [PID 1] pc=520/5045 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 614 | Q2/5] p1 [PID 1] pc=521/5045 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 615 | Q3/5] p1 [PID 1] pc=522/5045 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 617 | Q4/5] p1 [PID 1] pc=523/5045 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 618 | Q5/5] p1 [PID 1] pc=524/5045 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 619 | Q1/5] p1 [PID 1] pc=525/5045 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 620 | Q2/5] p1 [PID 1] pc=526/5045 -> LOAD(3571, val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 621 | Q3/5] p1 [PID 1] pc=527/5045 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 622 | Q4/5] p1 [PID 1] pc=528/5045 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 623 | Q5/5] p1 [PID 1] pc=529/5045 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 624 | Q1/5] p1 [PID 1] pc=530/5045 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 625 | Q1/5] p1 [PID 1] pc=530/5046 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 626 | Q2/5] p1 [PID 1] pc=531/5046 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 627 | Q3/5] p1 [PID 1] pc=532/5046 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 628 | Q4/5] p1 [PID 1] pc=533/5046 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 629 | Q5/5] p1 [PID 1] pc=534/5046 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 630 | Q1/5] p1 [PID 1] pc=535/5046 -> LOAD(295, val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 631 | Q2/5] p1 [PID 1] pc=536/5046 -> LOAD(3208, val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 632 | Q3/5] p1 [PID 1] pc=537/5046 -> LOAD(736, val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 633 | Q4/5] p1 [PID 1] pc=538/5046 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 634 | Q5/5] p1 [PID 1] pc=539/5046 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 636 | Q1/5] p1 [PID 1] pc=540/5046 -> LOAD(1913, val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 637 | Q2/5] p1 [PID 1] pc=541/5046 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 638 | Q3/5] p1 [PID 1] pc=542/5046 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 639 | Q4/5] p1 [PID 1] pc=543/5046 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 640 | Q4/5] p1 [PID 1] pc=543/5047 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 641 | Q5/5] p1 [PID 1] pc=544/5047 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:08] [Tick 642 | Q1/5] p1 [PID 1] pc=545/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 643 | Q2/5] p1 [PID 1] pc=546/5047 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 645 | Q3/5] p1 [PID 1] pc=547/5047 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:08] [Tick 646 | Q4/5] p1 [PID 1] pc=548/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 647 | Q5/5] p1 [PID 1] pc=549/5047 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 648 | Q1/5] p1 [PID 1] pc=550/5047 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 650 | Q2/5] p1 [PID 1] pc=551/5047 -> LOAD(2553, val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 651 | Q3/5] p1 [PID 1] pc=552/5047 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 652 | Q4/5] p1 [PID 1] pc=553/5047 -> LOAD(1483, val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 653 | Q5/5] p1 [PID 1] pc=554/5047 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 654 | Q1/5] p1 [PID 1] pc=555/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 655 | Q2/5] p1 [PID 1] pc=556/5047 -> STORE(2341, 42) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 656 | Q3/5] p1 [PID 1] pc=557/5047 -> LOAD(1202, val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 657 | Q4/5] p1 [PID 1] pc=558/5047 -> STORE(1742, 42) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 658 | Q5/5] p1 [PID 1] pc=559/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 659 | Q1/5] p1 [PID 1] pc=560/5047 -> STORE(1612, 42) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 660 | Q2/5] p1 [PID 1] pc=561/5047 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 662 | Q3/5] p1 [PID 1] pc=562/5047 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 663 | Q4/5] p1 [PID 1] pc=563/5047 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 665 | Q5/5] p1 [PID 1] pc=564/5047 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 666 | Q1/5] p1 [PID 1] pc=565/5047 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 667 | Q2/5] p1 [PID 1] pc=566/5047 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 668 | Q3/5] p1 [PID 1] pc=567/5047 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 669 | Q4/5] p1 [PID 1] pc=568/5047 -> STORE(1003, 42) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 670 | Q5/5] p1 [PID 1] pc=569/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 671 | Q1/5] p1 [PID 1] pc=570/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 672 | Q2/5] p1 [PID 1] pc=571/5047 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 673 | Q3/5] p1 [PID 1] pc=572/5047 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 674 | Q4/5] p1 [PID 1] pc=573/5047 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 675 | Q5/5] p1 [PID 1] pc=574/5047 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 676 | Q1/5] p1 [PID 1] pc=575/5047 -> STORE(3193, 42) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 677 | Q2/5] p1 [PID 1] pc=576/5047 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 678 | Q3/5] p1 [PID 1] pc=577/5047 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 679 | Q4/5] p1 [PID 1] pc=578/5047 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 680 | Q5/5] p1 [PID 1] pc=579/5047 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 681 | Q1/5] p1 [PID 1] pc=580/5047 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 682 | Q2/5] p1 [PID 1] pc=581/5047 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 683 | Q3/5] p1 [PID 1] pc=582/5047 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 685 | Q4/5] p1 [PID 1] pc=583/5047 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 686 | Q4/5] p1 [PID 1] pc=583/5048 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 687 | Q5/5] p1 [PID 1] pc=584/5048 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 688 | Q1/5] p1 [PID 1] pc=585/5048 -> LOAD(485, val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 689 | Q2/5] p1 [PID 1] pc=586/5048 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 690 | Q3/5] p1 [PID 1] pc=587/5048 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 691 | Q4/5] p1 [PID 1] pc=588/5048 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 692 | Q5/5] p1 [PID 1] pc=589/5048 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 693 | Q1/5] p1 [PID 1] pc=590/5048 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 694 | Q2/5] p1 [PID 1] pc=591/5048 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 695 | Q3/5] p1 [PID 1] pc=592/5048 -> STORE(3167, 42) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 696 | Q4/5] p1 [PID 1] pc=593/5048 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 697 | Q4/5] p1 [PID 1] pc=593/5049 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 698 | Q5/5] p1 [PID 1] pc=594/5049 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:09] [Tick 699 | Q1/5] p1 [PID 1] pc=595/5049 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 700 | Q2/5] p1 [PID 1] pc=596/5049 -> LOAD(1118, val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 701 | Q3/5] p1 [PID 1] pc=597/5049 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 702 | Q4/5] p1 [PID 1] pc=598/5049 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 703 | Q5/5] p1 [PID 1] pc=599/5049 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:09] [Tick 704 | Q1/5] p1 [PID 1] pc=600/5049 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 705 | Q2/5] p1 [PID 1] pc=601/5049 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 707 | Q3/5] p1 [PID 1] pc=602/5049 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 708 | Q4/5] p1 [PID 1] pc=603/5049 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 709 | Q5/5] p1 [PID 1] pc=604/5049 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 710 | Q1/5] p1 [PID 1] pc=605/5049 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 711 | Q2/5] p1 [PID 1] pc=606/5049 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 712 | Q2/5] p1 [PID 1] pc=606/5050 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 713 | Q3/5] p1 [PID 1] pc=607/5050 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 714 | Q4/5] p1 [PID 1] pc=608/5050 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 715 | Q5/5] p1 [PID 1] pc=609/5050 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 716 | Q1/5] p1 [PID 1] pc=610/5050 -> LOAD(1960, val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 717 | Q2/5] p1 [PID 1] pc=611/5050 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 718 | Q3/5] p1 [PID 1] pc=612/5050 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 719 | Q4/5] p1 [PID 1] pc=613/5050 -> STORE(2665, 42) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 720 | Q5/5] p1 [PID 1] pc=614/5050 -> LOAD(1677, val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 721 | Q1/5] p1 [PID 1] pc=615/5050 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 722 | Q2/5] p1 [PID 1] pc=616/5050 -> LOAD(1213, val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 723 | Q3/5] p1 [PID 1] pc=617/5050 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 725 | Q4/5] p1 [PID 1] pc=618/5050 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 726 | Q5/5] p1 [PID 1] pc=619/5050 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 727 | Q1/5] p1 [PID 1] pc=620/5050 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 728 | Q2/5] p1 [PID 1] pc=621/5050 -> STORE(3902, 42) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 729 | Q3/5] p1 [PID 1] pc=622/5050 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 730 | Q3/5] p1 [PID 1] pc=622/5051 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 731 | Q4/5] p1 [PID 1] pc=623/5051 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 732 | Q5/5] p1 [PID 1] pc=624/5051 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 733 | Q5/5] p1 [PID 1] pc=624/5052 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 734 | Q1/5] p1 [PID 1] pc=625/5052 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 735 | Q2/5] p1 [PID 1] pc=626/5052 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 736 | Q3/5] p1 [PID 1] pc=627/5052 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 737 | Q4/5] p1 [PID 1] pc=628/5052 -> STORE(2374, 42) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 738 | Q5/5] p1 [PID 1] pc=629/5052 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 739 | Q1/5] p1 [PID 1] pc=630/5052 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 740 | Q2/5] p1 [PID 1] pc=631/5052 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 742 | Q3/5] p1 [PID 1] pc=632/5052 -> LOAD(2189, val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 743 | Q4/5] p1 [PID 1] pc=633/5052 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 745 | Q5/5] p1 [PID 1] pc=634/5052 -> LOAD(478, val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 746 | Q1/5] p1 [PID 1] pc=635/5052 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 748 | Q2/5] p1 [PID 1] pc=636/5052 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 750 | Q3/5] p1 [PID 1] pc=637/5052 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 752 | Q4/5] p1 [PID 1] pc=638/5052 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 754 | Q5/5] p1 [PID 1] pc=639/5052 -> STORE(2836, 42) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 755 | Q1/5] p1 [PID 1] pc=640/5052 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 756 | Q1/5] p1 [PID 1] pc=640/5053 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 757 | Q2/5] p1 [PID 1] pc=641/5053 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 758 | Q3/5] p1 [PID 1] pc=642/5053 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 759 | Q4/5] p1 [PID 1] pc=643/5053 -> LOAD(962, val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 760 | Q5/5] p1 [PID 1] pc=644/5053 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:10] [Tick 761 | Q1/5] p1 [PID 1] pc=645/5053 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 762 | Q2/5] p1 [PID 1] pc=646/5053 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 763 | Q3/5] p1 [PID 1] pc=647/5053 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 764 | Q4/5] p1 [PID 1] pc=648/5053 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 765 | Q5/5] p1 [PID 1] pc=649/5053 -> STORE(2107, 42) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 766 | Q1/5] p1 [PID 1] pc=650/5053 -> STORE(795, 42) | State=RUNNING
+[2025-11-29 19:37:10] [Tick 767 | Q2/5] p1 [PID 1] pc=651/5053 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 768 | Q3/5] p1 [PID 1] pc=652/5053 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 769 | Q4/5] p1 [PID 1] pc=653/5053 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 770 | Q5/5] p1 [PID 1] pc=654/5053 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 771 | Q1/5] p1 [PID 1] pc=655/5053 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 772 | Q2/5] p1 [PID 1] pc=656/5053 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 773 | Q3/5] p1 [PID 1] pc=657/5053 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 774 | Q3/5] p1 [PID 1] pc=657/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 775 | Q4/5] p1 [PID 1] pc=658/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 776 | Q5/5] p1 [PID 1] pc=659/5054 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 777 | Q1/5] p1 [PID 1] pc=660/5054 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 778 | Q2/5] p1 [PID 1] pc=661/5054 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 779 | Q3/5] p1 [PID 1] pc=662/5054 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 781 | Q4/5] p1 [PID 1] pc=663/5054 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 782 | Q5/5] p1 [PID 1] pc=664/5054 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 783 | Q1/5] p1 [PID 1] pc=665/5054 -> STORE(2892, 42) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 784 | Q2/5] p1 [PID 1] pc=666/5054 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 785 | Q3/5] p1 [PID 1] pc=667/5054 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 786 | Q4/5] p1 [PID 1] pc=668/5054 -> LOAD(3814, val) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 787 | Q5/5] p1 [PID 1] pc=669/5054 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 788 | Q1/5] p1 [PID 1] pc=670/5054 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 789 | Q2/5] p1 [PID 1] pc=671/5054 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 790 | Q3/5] p1 [PID 1] pc=672/5054 -> STORE(94, 42) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 791 | Q4/5] p1 [PID 1] pc=673/5054 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 792 | Q5/5] p1 [PID 1] pc=674/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 793 | Q1/5] p1 [PID 1] pc=675/5054 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 794 | Q2/5] p1 [PID 1] pc=676/5054 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 795 | Q3/5] p1 [PID 1] pc=677/5054 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 796 | Q4/5] p1 [PID 1] pc=678/5054 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 797 | Q5/5] p1 [PID 1] pc=679/5054 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 799 | Q1/5] p1 [PID 1] pc=680/5054 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 800 | Q2/5] p1 [PID 1] pc=681/5054 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 801 | Q3/5] p1 [PID 1] pc=682/5054 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 803 | Q4/5] p1 [PID 1] pc=683/5054 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 804 | Q5/5] p1 [PID 1] pc=684/5054 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 805 | Q1/5] p1 [PID 1] pc=685/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 806 | Q2/5] p1 [PID 1] pc=686/5054 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 807 | Q3/5] p1 [PID 1] pc=687/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 808 | Q4/5] p1 [PID 1] pc=688/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 809 | Q5/5] p1 [PID 1] pc=689/5054 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 810 | Q1/5] p1 [PID 1] pc=690/5054 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 811 | Q2/5] p1 [PID 1] pc=691/5054 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 812 | Q2/5] p1 [PID 1] pc=691/5055 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 813 | Q3/5] p1 [PID 1] pc=692/5055 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 814 | Q4/5] p1 [PID 1] pc=693/5055 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 815 | Q5/5] p1 [PID 1] pc=694/5055 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 816 | Q1/5] p1 [PID 1] pc=695/5055 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 817 | Q1/5] p1 [PID 1] pc=695/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 818 | Q2/5] p1 [PID 1] pc=696/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 819 | Q3/5] p1 [PID 1] pc=697/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 820 | Q4/5] p1 [PID 1] pc=698/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 821 | Q5/5] p1 [PID 1] pc=699/5056 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 822 | Q1/5] p1 [PID 1] pc=700/5056 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 823 | Q2/5] p1 [PID 1] pc=701/5056 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 825 | Q3/5] p1 [PID 1] pc=702/5056 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 826 | Q4/5] p1 [PID 1] pc=703/5056 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 827 | Q5/5] p1 [PID 1] pc=704/5056 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 828 | Q1/5] p1 [PID 1] pc=705/5056 -> STORE(57, 42) | State=RUNNING
+[2025-11-29 19:37:11] [Tick 829 | Q2/5] p1 [PID 1] pc=706/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:11] [Tick 830 | Q3/5] p1 [PID 1] pc=707/5056 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 832 | Q4/5] p1 [PID 1] pc=708/5056 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 833 | Q5/5] p1 [PID 1] pc=709/5056 -> STORE(918, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 834 | Q1/5] p1 [PID 1] pc=710/5056 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 835 | Q2/5] p1 [PID 1] pc=711/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 836 | Q3/5] p1 [PID 1] pc=712/5056 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 837 | Q4/5] p1 [PID 1] pc=713/5056 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 838 | Q5/5] p1 [PID 1] pc=714/5056 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 839 | Q1/5] p1 [PID 1] pc=715/5056 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 840 | Q1/5] p1 [PID 1] pc=715/5057 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 841 | Q2/5] p1 [PID 1] pc=716/5057 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 842 | Q3/5] p1 [PID 1] pc=717/5057 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 843 | Q4/5] p1 [PID 1] pc=718/5057 -> LOAD(1280, val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 844 | Q5/5] p1 [PID 1] pc=719/5057 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 845 | Q1/5] p1 [PID 1] pc=720/5057 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 846 | Q2/5] p1 [PID 1] pc=721/5057 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 847 | Q3/5] p1 [PID 1] pc=722/5057 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 848 | Q4/5] p1 [PID 1] pc=723/5057 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 849 | Q5/5] p1 [PID 1] pc=724/5057 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 850 | Q1/5] p1 [PID 1] pc=725/5057 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 851 | Q2/5] p1 [PID 1] pc=726/5057 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 853 | Q3/5] p1 [PID 1] pc=727/5057 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 854 | Q4/5] p1 [PID 1] pc=728/5057 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 855 | Q5/5] p1 [PID 1] pc=729/5057 -> LOAD(851, val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 856 | Q1/5] p1 [PID 1] pc=730/5057 -> LOAD(130, val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 857 | Q2/5] p1 [PID 1] pc=731/5057 -> STORE(97, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 858 | Q3/5] p1 [PID 1] pc=732/5057 -> LOAD(1237, val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 859 | Q4/5] p1 [PID 1] pc=733/5057 -> STORE(1466, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 860 | Q5/5] p1 [PID 1] pc=734/5057 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 861 | Q1/5] p1 [PID 1] pc=735/5057 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 862 | Q2/5] p1 [PID 1] pc=736/5057 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 863 | Q3/5] p1 [PID 1] pc=737/5057 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 864 | Q4/5] p1 [PID 1] pc=738/5057 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 865 | Q4/5] p1 [PID 1] pc=738/5058 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 866 | Q5/5] p1 [PID 1] pc=739/5058 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 867 | Q1/5] p1 [PID 1] pc=740/5058 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 868 | Q2/5] p1 [PID 1] pc=741/5058 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 869 | Q2/5] p1 [PID 1] pc=741/5059 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 870 | Q3/5] p1 [PID 1] pc=742/5059 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 871 | Q4/5] p1 [PID 1] pc=743/5059 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 872 | Q5/5] p1 [PID 1] pc=744/5059 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 873 | Q1/5] p1 [PID 1] pc=745/5059 -> STORE(3144, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 874 | Q2/5] p1 [PID 1] pc=746/5059 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 875 | Q3/5] p1 [PID 1] pc=747/5059 -> STORE(2041, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 876 | Q4/5] p1 [PID 1] pc=748/5059 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 877 | Q5/5] p1 [PID 1] pc=749/5059 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 878 | Q1/5] p1 [PID 1] pc=750/5059 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 879 | Q2/5] p1 [PID 1] pc=751/5059 -> STORE(1957, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 880 | Q3/5] p1 [PID 1] pc=752/5059 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 881 | Q3/5] p1 [PID 1] pc=752/5060 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 882 | Q4/5] p1 [PID 1] pc=753/5060 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 883 | Q5/5] p1 [PID 1] pc=754/5060 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 884 | Q5/5] p1 [PID 1] pc=754/5061 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 885 | Q1/5] p1 [PID 1] pc=755/5061 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 886 | Q2/5] p1 [PID 1] pc=756/5061 -> STORE(3172, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 887 | Q3/5] p1 [PID 1] pc=757/5061 -> STORE(3020, 42) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 888 | Q4/5] p1 [PID 1] pc=758/5061 -> LOAD(1935, val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 889 | Q5/5] p1 [PID 1] pc=759/5061 -> LOAD(6, val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 890 | Q1/5] p1 [PID 1] pc=760/5061 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 891 | Q2/5] p1 [PID 1] pc=761/5061 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 892 | Q3/5] p1 [PID 1] pc=762/5061 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:12] [Tick 893 | Q3/5] p1 [PID 1] pc=762/5062 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 894 | Q4/5] p1 [PID 1] pc=763/5062 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:12] [Tick 895 | Q5/5] p1 [PID 1] pc=764/5062 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 897 | Q1/5] p1 [PID 1] pc=765/5062 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 898 | Q2/5] p1 [PID 1] pc=766/5062 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 899 | Q3/5] p1 [PID 1] pc=767/5062 -> LOAD(570, val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 900 | Q4/5] p1 [PID 1] pc=768/5062 -> STORE(3680, 42) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 901 | Q5/5] p1 [PID 1] pc=769/5062 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 903 | Q1/5] p1 [PID 1] pc=770/5062 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 904 | Q2/5] p1 [PID 1] pc=771/5062 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 905 | Q3/5] p1 [PID 1] pc=772/5062 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 906 | Q4/5] p1 [PID 1] pc=773/5062 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 908 | Q5/5] p1 [PID 1] pc=774/5062 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 909 | Q5/5] p1 [PID 1] pc=774/5063 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 910 | Q1/5] p1 [PID 1] pc=775/5063 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 911 | Q2/5] p1 [PID 1] pc=776/5063 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 913 | Q3/5] p1 [PID 1] pc=777/5063 -> LOAD(1621, val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 914 | Q4/5] p1 [PID 1] pc=778/5063 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 916 | Q5/5] p1 [PID 1] pc=779/5063 -> STORE(2010, 42) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 917 | Q1/5] p1 [PID 1] pc=780/5063 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 919 | Q2/5] p1 [PID 1] pc=781/5063 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 920 | Q3/5] p1 [PID 1] pc=782/5063 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 921 | Q3/5] p1 [PID 1] pc=782/5064 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 922 | Q4/5] p1 [PID 1] pc=783/5064 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 923 | Q5/5] p1 [PID 1] pc=784/5064 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 924 | Q1/5] p1 [PID 1] pc=785/5064 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 925 | Q2/5] p1 [PID 1] pc=786/5064 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 926 | Q3/5] p1 [PID 1] pc=787/5064 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 927 | Q4/5] p1 [PID 1] pc=788/5064 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 928 | Q5/5] p1 [PID 1] pc=789/5064 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 929 | Q1/5] p1 [PID 1] pc=790/5064 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 930 | Q1/5] p1 [PID 1] pc=790/5065 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 931 | Q2/5] p1 [PID 1] pc=791/5065 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 932 | Q3/5] p1 [PID 1] pc=792/5065 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 933 | Q4/5] p1 [PID 1] pc=793/5065 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 934 | Q5/5] p1 [PID 1] pc=794/5065 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 935 | Q1/5] p1 [PID 1] pc=795/5065 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 936 | Q2/5] p1 [PID 1] pc=796/5065 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 937 | Q3/5] p1 [PID 1] pc=797/5065 -> STORE(1246, 42) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 938 | Q4/5] p1 [PID 1] pc=798/5065 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 939 | Q5/5] p1 [PID 1] pc=799/5065 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 940 | Q1/5] p1 [PID 1] pc=800/5065 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 942 | Q2/5] p1 [PID 1] pc=801/5065 -> STORE(2298, 42) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 943 | Q3/5] p1 [PID 1] pc=802/5065 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 944 | Q4/5] p1 [PID 1] pc=803/5065 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 945 | Q4/5] p1 [PID 1] pc=803/5066 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 946 | Q5/5] p1 [PID 1] pc=804/5066 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 947 | Q1/5] p1 [PID 1] pc=805/5066 -> STORE(1364, 42) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 948 | Q2/5] p1 [PID 1] pc=806/5066 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 949 | Q3/5] p1 [PID 1] pc=807/5066 -> LOAD(3016, val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 950 | Q4/5] p1 [PID 1] pc=808/5066 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 951 | Q5/5] p1 [PID 1] pc=809/5066 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 952 | Q1/5] p1 [PID 1] pc=810/5066 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 953 | Q1/5] p1 [PID 1] pc=810/5067 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 954 | Q2/5] p1 [PID 1] pc=811/5067 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 955 | Q3/5] p1 [PID 1] pc=812/5067 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 956 | Q4/5] p1 [PID 1] pc=813/5067 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 957 | Q4/5] p1 [PID 1] pc=813/5068 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 958 | Q5/5] p1 [PID 1] pc=814/5068 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:13] [Tick 959 | Q1/5] p1 [PID 1] pc=815/5068 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:13] [Tick 960 | Q2/5] p1 [PID 1] pc=816/5068 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 961 | Q3/5] p1 [PID 1] pc=817/5068 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 963 | Q4/5] p1 [PID 1] pc=818/5068 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 964 | Q5/5] p1 [PID 1] pc=819/5068 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 965 | Q1/5] p1 [PID 1] pc=820/5068 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 966 | Q2/5] p1 [PID 1] pc=821/5068 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 967 | Q3/5] p1 [PID 1] pc=822/5068 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 968 | Q4/5] p1 [PID 1] pc=823/5068 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 969 | Q5/5] p1 [PID 1] pc=824/5068 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 970 | Q1/5] p1 [PID 1] pc=825/5068 -> STORE(2308, 42) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 971 | Q2/5] p1 [PID 1] pc=826/5068 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 972 | Q3/5] p1 [PID 1] pc=827/5068 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 973 | Q4/5] p1 [PID 1] pc=828/5068 -> STORE(2375, 42) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 974 | Q5/5] p1 [PID 1] pc=829/5068 -> STORE(2359, 42) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 975 | Q1/5] p1 [PID 1] pc=830/5068 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 976 | Q2/5] p1 [PID 1] pc=831/5068 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 977 | Q3/5] p1 [PID 1] pc=832/5068 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 978 | Q4/5] p1 [PID 1] pc=833/5068 -> LOAD(1875, val) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 979 | Q5/5] p1 [PID 1] pc=834/5068 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 980 | Q1/5] p1 [PID 1] pc=835/5068 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 981 | Q2/5] p1 [PID 1] pc=836/5068 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 982 | Q3/5] p1 [PID 1] pc=837/5068 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 983 | Q3/5] p1 [PID 1] pc=837/5069 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 984 | Q4/5] p1 [PID 1] pc=838/5069 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 985 | Q5/5] p1 [PID 1] pc=839/5069 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 986 | Q1/5] p1 [PID 1] pc=840/5069 -> LOAD(98, val) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 987 | Q2/5] p1 [PID 1] pc=841/5069 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 988 | Q3/5] p1 [PID 1] pc=842/5069 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 989 | Q4/5] p1 [PID 1] pc=843/5069 -> PRINT('Loaded value: ' + val) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 990 | Q5/5] p1 [PID 1] pc=844/5069 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 992 | Q1/5] p1 [PID 1] pc=845/5069 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 994 | Q2/5] p1 [PID 1] pc=846/5069 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 995 | Q3/5] p1 [PID 1] pc=847/5069 -> PRINT('Value of sum: ' + sum) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 996 | Q4/5] p1 [PID 1] pc=848/5069 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 997 | Q5/5] p1 [PID 1] pc=849/5069 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 998 | Q5/5] p1 [PID 1] pc=849/5070 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 999 | Q1/5] p1 [PID 1] pc=850/5070 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1000 | Q2/5] p1 [PID 1] pc=851/5070 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1001 | Q3/5] p1 [PID 1] pc=852/5070 -> STORE(3378, 42) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1002 | Q4/5] p1 [PID 1] pc=853/5070 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1003 | Q4/5] p1 [PID 1] pc=853/5071 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1004 | Q5/5] p1 [PID 1] pc=854/5071 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1005 | Q1/5] p1 [PID 1] pc=855/5071 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1006 | Q2/5] p1 [PID 1] pc=856/5071 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1007 | Q3/5] p1 [PID 1] pc=857/5071 -> LOAD(1017, val) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1008 | Q4/5] p1 [PID 1] pc=858/5071 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1009 | Q5/5] p1 [PID 1] pc=859/5071 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1010 | Q5/5] p1 [PID 1] pc=859/5072 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1011 | Q1/5] p1 [PID 1] pc=860/5072 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1012 | Q2/5] p1 [PID 1] pc=861/5072 -> ADD(sum, x, y) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1013 | Q3/5] p1 [PID 1] pc=862/5072 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1014 | Q4/5] p1 [PID 1] pc=863/5072 -> DECLARE(y, 10) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1015 | Q5/5] p1 [PID 1] pc=864/5072 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1016 | Q1/5] p1 [PID 1] pc=865/5072 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1017 | Q1/5] p1 [PID 1] pc=865/5073 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1018 | Q2/5] p1 [PID 1] pc=866/5073 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1019 | Q3/5] p1 [PID 1] pc=867/5073 -> FOR([PRINT('Hello world!')], 2) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1020 | Q3/5] p1 [PID 1] pc=867/5074 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1021 | Q4/5] p1 [PID 1] pc=868/5074 -> PRINT('Hello world!') | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1022 | Q5/5] p1 [PID 1] pc=869/5074 -> DECLARE(x, 5) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1023 | Q1/5] p1 [PID 1] pc=870/5074 -> SUBTRACT(diff, y, x) | State=RUNNING
+[2025-11-29 19:37:14] [Tick 1024 | Q2/5] p1 [PID 1] pc=871/5074 -> SLEEP(2) | State=RUNNING
+[2025-11-29 19:37:15] [Tick 1026 | Q3/5] p1 [PID 1] pc=872/5074 -> DECLARE(x, 5) | State=RUNNING

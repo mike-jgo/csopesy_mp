@@ -100,6 +100,13 @@ int resolveValue(Process& p, const std::string& token) {
 
 // === Instruction Implementations ===
 
+// Helper to clamp uint16
+int clampUint16(int val) {
+    if (val < 0) return 0;
+    if (val > 65535) return 65535;
+    return val;
+}
+
 class DeclareInstruction : public Instruction {
     std::string var;
     int val;
@@ -123,7 +130,7 @@ public:
     void execute(Process& p) override {
         int v1 = resolveValue(p, op1);
         int v2 = resolveValue(p, op2);
-        p.variables[target] = v1 + v2;
+        p.variables[target] = clampUint16(v1 + v2);
         p.pc++;
     }
     std::string toString() const override {
@@ -140,7 +147,7 @@ public:
     void execute(Process& p) override {
         int v1 = resolveValue(p, op1);
         int v2 = resolveValue(p, op2);
-        p.variables[target] = v1 - v2;
+        p.variables[target] = clampUint16(v1 - v2);
         p.pc++;
     }
     std::string toString() const override {
@@ -425,7 +432,7 @@ Process* findProcess(const std::string& name) {
 }
 
 // Generate dummy instructions for a process 
-std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count) {
+std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count, int memSize) {
     std::vector<std::shared_ptr<Instruction>> ins;
     static std::vector<std::string> pool = {
         "DECLARE(x, 5)",
@@ -436,12 +443,20 @@ std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count) {
         "PRINT('Value of sum: ' + sum)",
         "SLEEP(2)",
         "FOR([PRINT('Hello world!')], 2)",
-        "STORE(0, 42)",
-        "LOAD(0, val)",
+        "STORE(%ADDR%, 42)",
+        "LOAD(%ADDR%, val)",
         "PRINT('Loaded value: ' + val)"
     };
     for (int i = 0; i < count; ++i) {
         std::string line = pool[rand() % pool.size()];
+        
+        // Replace %ADDR% with random address
+        size_t pos = line.find("%ADDR%");
+        if (pos != std::string::npos) {
+            int randomAddr = rand() % memSize;
+            line.replace(pos, 6, std::to_string(randomAddr));
+        }
+
         auto inst = parseInstruction(line);
         if (inst) ins.push_back(inst);
     }
@@ -588,7 +603,7 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     }
     if (args.size() == 1) {
         std::cout << "Usage:\n"
-            << "  screen -s <process_name>\n"
+            << "  screen -s <process_name> <memory>\n"
             << "  screen -r <process_name>\n"
             << "  screen -ls\n";
         return;
@@ -596,18 +611,43 @@ void handleScreenCommand(const std::vector<std::string>& args) {
     std::string flag = args[1];
 
     // --- Create new process ---
-    if (flag == "-s" && args.size() >= 3) {
+    if (flag == "-s") {
+        if (args.size() != 4) {
+            std::cout << "Usage: screen -s <process_name> <memory>\n";
+            return;
+        }
+
         std::string name = args[2];
+        int memory = 0;
+        try {
+            memory = std::stoi(args[3]);
+        }
+        catch (...) {
+            std::cout << "Error: Invalid memory argument. Must be an integer.\n";
+            return;
+        }
+
+        // Validate power of 2
+        if (memory <= 0 || (memory & (memory - 1)) != 0) {
+            std::cout << "Error: Memory must be a power of 2.\n";
+            return;
+        }
+
+        // Validate range
+        if (memory < systemConfig.min_mem_per_proc || memory > systemConfig.max_mem_per_proc) {
+            std::cout << "invalid memory allocation\n";
+            return;
+        }
+
         Process newProc;
         newProc.name = name;
         newProc.state = ProcessState::READY;
         int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
-        newProc.instructions = generateDummyInstructions(insCount);
+        newProc.instructions = generateDummyInstructions(insCount, memory);
 
         // Memory Allocation
-        size_t memSize = rand() % (systemConfig.max_mem_per_proc - systemConfig.min_mem_per_proc + 1) + systemConfig.min_mem_per_proc;
-        newProc.memory_required = memSize;
-        int pages = (memSize + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
+        newProc.memory_required = memory;
+        int pages = (memory + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
         memoryManager->initializePageTable(newProc, pages);
 
         {
@@ -619,8 +659,8 @@ void handleScreenCommand(const std::vector<std::string>& args) {
             newProc.pid = nextPID++;
             processTable.push_back(newProc);
         }
-
-        std::cout << "Created new process: " << name << " (PID " << newProc.pid << ")\n";
+        
+        std::cout << "Created new process: " << name << " (PID " << newProc.pid << ") with " << memory << " bytes.\n";
         std::cout << "Attached to process screen.\n";
         ensureSchedulerActive();
 
@@ -986,11 +1026,11 @@ void scheduler_loop_tick(bool hasActiveWork) {
             newProc.pid = nextPID - 1;
             newProc.state = ProcessState::READY;
             int insCount = rand() % (systemConfig.max_ins - systemConfig.min_ins + 1) + systemConfig.min_ins;
-            newProc.instructions = generateDummyInstructions(insCount);
             
             // Memory Allocation
             size_t memSize = rand() % (systemConfig.max_mem_per_proc - systemConfig.min_mem_per_proc + 1) + systemConfig.min_mem_per_proc;
             newProc.memory_required = memSize;
+            newProc.instructions = generateDummyInstructions(insCount, (int)memSize);
             int pages = (memSize + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
             memoryManager->initializePageTable(newProc, pages);
             
