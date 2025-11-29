@@ -49,6 +49,8 @@ std::vector<std::string> tokenize(const std::string& input) {
     return tokens;
 }
 
+
+
 // Split by '+' but ignore '+' inside single quotes
 std::vector<std::string> splitPrintExpr(const std::string& expr) {
     std::vector<std::string> parts;
@@ -1172,6 +1174,33 @@ void processSmiCommand() {
     std::cout << "=====================\n\n";
 }
 
+void vmstatCommand() {
+    if (!initialized || !memoryManager) {
+        std::cout << "Error: System not initialized.\n";
+        return;
+    }
+
+    size_t total_mem = systemConfig.max_overall_mem;
+    size_t used_mem = memoryManager->getUsedMemory();
+    size_t free_mem = total_mem - used_mem;
+
+    // Mock CPU ticks (since we don't track them granularly yet)
+    unsigned long long idle_ticks = global_tick * systemConfig.num_cpu; // Simplification
+    unsigned long long active_ticks = global_tick; // Simplification
+
+    VMStatCounters stats = memoryManager->getVMStat();
+
+    std::cout << "\n=== VMSTAT ===\n";
+    std::cout << total_mem << " K total memory\n";
+    std::cout << used_mem << " K used memory\n";
+    std::cout << free_mem << " K free memory\n";
+    std::cout << idle_ticks << " idle cpu ticks\n";
+    std::cout << active_ticks << " active cpu ticks\n";
+    std::cout << stats.pages_paged_in << " pages paged in\n";
+    std::cout << stats.pages_paged_out << " pages paged out\n";
+    std::cout << "=================\n\n";
+}
+
 // === INPUT LOOP ===
 void inputLoop() {
     std::string input;
@@ -1205,6 +1234,7 @@ void inputLoop() {
             else if (cmd == "screen") handleScreenCommand(tokens);
             else if (cmd == "scheduler") handleSchedulerCommand(tokens);
             else if (cmd == "report-util") reportUtilCommand();
+            else if (cmd == "vmstat") vmstatCommand();
             else if (cmd == "report-trace") {
                 std::ifstream trace("csopesy-trace.txt");
                 if (!trace.is_open()) {
