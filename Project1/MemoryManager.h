@@ -6,9 +6,16 @@
 #include <fstream>
 #include <algorithm>
 #include <deque>
+#include <string>
 
 // Forward declaration
 class Process;
+
+// Global VMStat Counters
+struct VMStatCounters {
+    unsigned long long pages_paged_in = 0;
+    unsigned long long pages_paged_out = 0;
+};
 
 struct PageTableEntry {
     int frame_num = -1;
@@ -26,20 +33,22 @@ struct FrameTableEntry {
 class MemoryManager {
 public:
     MemoryManager(size_t total_frames, size_t frame_size);
-    
+
     // Returns true if access successful (or page fault handled), false if error
     bool access(int pid, int virtual_addr, bool write, int& value);
-    
+
     // Allocate frames for a process (called on process creation)
-    // In demand paging, we might just initialize the page table.
     void initializePageTable(Process& p, int required_pages);
 
     // Debug/SMI helper
     size_t getFreeFrameCount() const;
     size_t getTotalFrames() const;
-    
-    // Backing store simulation: pid + page_num -> content
-    // We can use a simple map for this simulation.
+    size_t getUsedMemory() const;
+
+    // VMStat Helpers
+    VMStatCounters getVMStat();
+
+    // Backing store simulation
     // Key: "pid:page_num", Value: vector<int> (size = frame_size)
     std::unordered_map<std::string, std::vector<int>> backing_store;
 
@@ -50,16 +59,18 @@ private:
     std::vector<int> ram; // Physical memory: size = total_frames * frame_size
     std::mutex mem_mutex;
 
+    // VMStat internal counters
+    VMStatCounters stats;
+
     // Helper to handle page fault
     bool handlePageFault(int pid, int page_num);
-    
+
     // Helper to find a free frame or evict a victim
     int allocateFrame();
-    
+
     // Helper to evict a victim page (LRU)
     int evictVictim();
 
-    // Access the global process table to update page tables
-    // (We might need a way to access the process table or pass the process object)
-    // For now, we assume we can access the global processTable or pass necessary info.
+    // Save backing store to file
+    void flushBackingStore();
 };
