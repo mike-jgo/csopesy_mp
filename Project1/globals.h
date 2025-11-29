@@ -56,6 +56,14 @@ public:
     int sleep_counter = 0;
     int quantum_used = 0;
     bool needs_cpu = true;
+
+    // Symbol Table Management
+    // Max 64 bytes for symbol table. Each uint16 var is 2 bytes.
+    // Max variables = 64 / 2 = 32.
+    static constexpr size_t MAX_SYMBOL_TABLE_SIZE = 64;
+    static constexpr size_t VAR_SIZE = 2;
+    static constexpr size_t MAX_VARIABLES = MAX_SYMBOL_TABLE_SIZE / VAR_SIZE;
+
     
     // Memory Management
     int memory_required = 0; // Total memory required in bytes
@@ -102,7 +110,7 @@ void processSmiCommand();
 bool loadConfigFile(const std::string& filename);
 bool generateDefaultConfig(const std::string& filename);
 // Changed to return shared_ptr<Instruction>
-std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count);
+std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count, int memSize);
 Process* findProcess(const std::string& name);
 std::vector<std::string> tokenize(const std::string& input);
 
