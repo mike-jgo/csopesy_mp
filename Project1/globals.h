@@ -11,7 +11,7 @@
 
 // === Enums ===
 enum class ConsoleMode { MAIN, PROCESS };
-enum class ProcessState { READY, RUNNING, SLEEPING, FINISHED };
+enum class ProcessState { READY, RUNNING, SLEEPING, FINISHED, MEMORY_VIOLATED };
 
 // === Config structure ===
 struct Config {
@@ -63,6 +63,8 @@ public:
     static constexpr size_t MAX_SYMBOL_TABLE_SIZE = 64;
     static constexpr size_t VAR_SIZE = 2;
     static constexpr size_t MAX_VARIABLES = MAX_SYMBOL_TABLE_SIZE / VAR_SIZE;
+    static constexpr size_t SYMBOL_TABLE_SIZE = 64; 
+    static constexpr int SYMBOL_TABLE_PAGE = 0; // Symbol table always lives in Page 0
 
     
     // Memory Management
