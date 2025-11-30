@@ -42,14 +42,29 @@ std::string trim(const std::string& str) {
 }
 
 std::vector<std::string> tokenize(const std::string& input) {
-    std::istringstream stream(input);
     std::vector<std::string> tokens;
-    std::string token;
-    while (stream >> token) tokens.push_back(token);
+    std::string current_token;
+    bool in_quotes = false;
+    
+    for (size_t i = 0; i < input.length(); ++i) {
+        char c = input[i];
+        if (c == '"') {
+            in_quotes = !in_quotes;
+            current_token += c;
+        } else if (std::isspace(c) && !in_quotes) {
+            if (!current_token.empty()) {
+                tokens.push_back(current_token);
+                current_token.clear();
+            }
+        } else {
+            current_token += c;
+        }
+    }
+    if (!current_token.empty()) {
+        tokens.push_back(current_token);
+    }
     return tokens;
 }
-
-
 
 // Split by '+' but ignore '+' inside single quotes
 std::vector<std::string> splitPrintExpr(const std::string& expr) {
@@ -100,6 +115,15 @@ int resolveValue(Process& p, const std::string& token) {
 
 // === Instruction Implementations ===
 
+// Helper to parse string that might be decimal or hex (0x...)
+int parseAddressOrValue(const std::string& token) {
+    try {
+        return std::stoi(token, nullptr, 0); // 0 base auto-detects 0x
+    } catch (...) {
+        return -1; // Indicator for failure
+    }
+}
+
 // Helper to clamp uint16
 int clampUint16(int val) {
     if (val < 0) return 0;
@@ -113,7 +137,15 @@ class DeclareInstruction : public Instruction {
 public:
     DeclareInstruction(const std::string& v, int value) : var(v), val(value) {}
     void execute(Process& p) override {
-        p.variables[var] = val;
+        // Check Symbol Table Page (Address 0)
+        if (!memoryManager->isPageResident(p.pid, 0)) {
+            std::cout << "Page Fault: Symbol Table not resident. Deferring DECLARE.\n";
+            int dummy;
+            memoryManager->access(p.pid, 0, false, dummy); // Trigger load of Page 0
+            return;
+        }
+
+        p.variables[var] = clampUint16(val);
         p.pc++;
     }
     std::string toString() const override {
@@ -211,42 +243,89 @@ public:
     }
 };
 
-class StoreInstruction : public Instruction {
-    int address;
-    int value;
+class WriteInstruction : public Instruction {
+    std::string addrStr;
+    std::string valStr; // Keep as string to resolve vars if needed, or raw hex
 public:
-    StoreInstruction(int addr, int val) : address(addr), value(val) {}
+    WriteInstruction(const std::string& a, const std::string& v) : addrStr(a), valStr(v) {}
+
     void execute(Process& p) override {
-        int dummy;
-        if (memoryManager->access(p.pid, address, true, value)) {
-            // Success
-        } else {
-            std::cout << "Error: Memory access violation in process " << p.pid << "\n";
-            // p.state = ProcessState::FINISHED; // Optional: kill process
+        int addr = parseAddressOrValue(addrStr);
+        
+        // Resolve value (could be a variable or a literal)
+        int val = 0;
+        try {
+            val = std::stoi(valStr, nullptr, 0);
+        } catch (...) {
+            if (p.variables.count(valStr)) val = p.variables[valStr];
         }
-        p.pc++;
+        val = clampUint16(val);
+
+        // 1. Bounds Check
+        if (addr < 0 || addr >= p.memory_required) {
+            std::cout << "Error: Memory Violation in process " << p.pid << " (Addr " << addrStr << ")\n";
+            p.state = ProcessState::MEMORY_VIOLATED;
+            return;
+        }
+
+        // 2. Paging Logic
+        if (!memoryManager->isPageResident(p.pid, addr)) {
+            std::cout << "Page Fault: Address " << addrStr << " not resident. Deferring execution.\n";
+            int dummy = 0;
+            memoryManager->access(p.pid, addr, true, dummy); // Trigger load
+            return; // Retry next tick
+        }
+
+        // 3. Execution
+        if (memoryManager->access(p.pid, addr, true, val)) {
+            // Access successful, dirty bit handled in MemoryManager
+            p.pc++;
+        }
     }
+
     std::string toString() const override {
-        return "STORE(" + std::to_string(address) + ", " + std::to_string(value) + ")";
+        return "WRITE(" + addrStr + ", " + valStr + ")";
     }
 };
 
-class LoadInstruction : public Instruction {
-    int address;
+class ReadInstruction : public Instruction {
+    std::string addrStr;
     std::string var;
 public:
-    LoadInstruction(int addr, const std::string& v) : address(addr), var(v) {}
+    ReadInstruction(const std::string& a, const std::string& v) : addrStr(a), var(v) {}
+
     void execute(Process& p) override {
-        int val = 0;
-        if (memoryManager->access(p.pid, address, false, val)) {
-            p.variables[var] = val;
-        } else {
-            std::cout << "Error: Memory access violation in process " << p.pid << "\n";
+        int addr = parseAddressOrValue(addrStr);
+        
+        // 1. Bounds Check
+        if (addr < 0 || addr >= p.memory_required) {
+            std::cout << "Error: Memory Violation in process " << p.pid << " (Addr " << addrStr << ")\n";
+            p.state = ProcessState::MEMORY_VIOLATED;
+            return;
         }
-        p.pc++;
+
+        // 2. Paging Logic (Check Residence)
+        if (!memoryManager->isPageResident(p.pid, addr)) {
+            std::cout << "Page Fault: Address " << addrStr << " not resident. Deferring execution.\n";
+            
+            // Trigger the load logic (simulated IO delay)
+            int dummy;
+            memoryManager->access(p.pid, addr, false, dummy); 
+            
+            // Do NOT increment PC. Next tick will retry.
+            return; 
+        }
+
+        // 3. Execution (Resident)
+        int val = 0;
+        if (memoryManager->access(p.pid, addr, false, val)) {
+            p.variables[var] = clampUint16(val);
+            p.pc++; // Only increment on success
+        }
     }
+
     std::string toString() const override {
-        return "LOAD(" + std::to_string(address) + ", " + var + ")";
+        return "READ(" + var + ", " + addrStr + ")";
     }
 };
 
@@ -294,16 +373,48 @@ std::shared_ptr<Instruction> parseInstruction(const std::string& line) {
         return std::make_shared<ForInstruction>(match[1], std::stoi(match[2]));
     }
 
-    // STORE
-    static std::regex storeRegex(R"(STORE\((\d+),\s*(\d+)\))");
-    if (std::regex_match(instr, match, storeRegex)) {
-        return std::make_shared<StoreInstruction>(std::stoi(match[1]), std::stoi(match[2]));
+    // READ
+    static std::regex readRegex(R"(READ\((\w+),\s*((?:0x[0-9a-fA-F]+|\d+))\))");
+    if (std::regex_match(instr, match, readRegex)) {
+        return std::make_shared<ReadInstruction>(match[2], match[1]); // Addr, Var
     }
 
-    // LOAD
-    static std::regex loadRegex(R"(LOAD\((\d+),\s*(\w+)\))");
-    if (std::regex_match(instr, match, loadRegex)) {
-        return std::make_shared<LoadInstruction>(std::stoi(match[1]), match[2]);
+    // WRITE
+    static std::regex writeRegex(R"(WRITE\(((?:0x[0-9a-fA-F]+|\d+)),\s*([a-zA-Z0-9_]+)\))");
+    if (std::regex_match(instr, match, writeRegex)) {
+        return std::make_shared<WriteInstruction>(match[1], match[2]);
+    }
+
+    // === Space-Separated Syntax Support ===
+
+    // DECLARE <var> <val>
+    static std::regex declareSpaceRegex(R"(DECLARE\s+(\w+)\s+(-?\d+))");
+    if (std::regex_match(instr, match, declareSpaceRegex)) {
+        return std::make_shared<DeclareInstruction>(match[1], std::stoi(match[2]));
+    }
+
+    // ADD <target> <op1> <op2>
+    static std::regex addSpaceRegex(R"(ADD\s+(\w+)\s+([\w\-]+)\s+([\w\-]+))");
+    if (std::regex_match(instr, match, addSpaceRegex)) {
+        return std::make_shared<AddInstruction>(match[1], match[2], match[3]);
+    }
+
+    // SUBTRACT <target> <op1> <op2>
+    static std::regex subSpaceRegex(R"(SUBTRACT\s+(\w+)\s+([\w\-]+)\s+([\w\-]+))");
+    if (std::regex_match(instr, match, subSpaceRegex)) {
+        return std::make_shared<SubtractInstruction>(match[1], match[2], match[3]);
+    }
+
+    // READ <var> <addr>
+    static std::regex readSpaceRegex(R"(READ\s+(\w+)\s+((?:0x[0-9a-fA-F]+|\d+)))");
+    if (std::regex_match(instr, match, readSpaceRegex)) {
+        return std::make_shared<ReadInstruction>(match[2], match[1]); // Addr, Var
+    }
+
+    // WRITE <addr> <val>
+    static std::regex writeSpaceRegex(R"(WRITE\s+((?:0x[0-9a-fA-F]+|\d+))\s+([a-zA-Z0-9_]+))");
+    if (std::regex_match(instr, match, writeSpaceRegex)) {
+        return std::make_shared<WriteInstruction>(match[1], match[2]);
     }
 
     return nullptr;
@@ -667,6 +778,88 @@ void handleScreenCommand(const std::vector<std::string>& args) {
         mode = ConsoleMode::PROCESS;
         current_process = name;
     }
+    // --- Create new process with instructions (-c) ---
+    else if (flag == "-c") {
+        if (args.size() != 5) {
+            std::cout << "Usage: screen -c <process_name> <memory> \"<instructions>\"\n";
+            return;
+        }
+
+        std::string name = args[2];
+        int memory = 0;
+        try {
+            memory = std::stoi(args[3]);
+        }
+        catch (...) {
+            std::cout << "Error: Invalid memory argument. Must be an integer.\n";
+            return;
+        }
+
+        // Validate power of 2
+        if (memory <= 0 || (memory & (memory - 1)) != 0) {
+            std::cout << "Error: Memory must be a power of 2.\n";
+            return;
+        }
+
+        // Validate range
+        if (memory < systemConfig.min_mem_per_proc || memory > systemConfig.max_mem_per_proc) {
+            std::cout << "invalid memory allocation\n";
+            return;
+        }
+
+        std::string instrString = args[4];
+        // Remove surrounding quotes if present
+        if (instrString.size() >= 2 && instrString.front() == '"' && instrString.back() == '"') {
+            instrString = instrString.substr(1, instrString.size() - 2);
+        }
+
+        std::vector<std::shared_ptr<Instruction>> parsedInstructions;
+        std::stringstream ss(instrString);
+        std::string segment;
+        
+        while (std::getline(ss, segment, ';')) {
+            std::string trimmed = trim(segment);
+            if (trimmed.empty()) continue;
+            auto inst = parseInstruction(trimmed);
+            if (!inst) {
+                std::cout << "Invalid command: " << trimmed << "\n";
+                return;
+            }
+            parsedInstructions.push_back(inst);
+        }
+
+        if (parsedInstructions.empty() || parsedInstructions.size() > 50) {
+            std::cout << "invalid command\n";
+            return;
+        }
+
+        Process newProc;
+        newProc.name = name;
+        newProc.state = ProcessState::READY;
+        newProc.instructions = parsedInstructions;
+        newProc.memory_required = memory;
+
+        // Memory Allocation
+        int pages = (memory + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
+        memoryManager->initializePageTable(newProc, pages);
+
+        {
+            std::lock_guard<std::mutex> lock(processTableMutex);
+            if (findProcess(name)) {
+                std::cout << "Process " << name << " already exists.\n";
+                return;
+            }
+            newProc.pid = nextPID++;
+            processTable.push_back(newProc);
+        }
+
+        std::cout << "Created new process: " << name << " (PID " << newProc.pid << ") with " << memory << " bytes and " << parsedInstructions.size() << " instructions.\n";
+        std::cout << "Attached to process screen.\n";
+        ensureSchedulerActive();
+
+        mode = ConsoleMode::PROCESS;
+        current_process = name;
+    }
     // --- Reattach to an existing process ---
     else if (flag == "-r" && args.size() >= 3) {
         std::string name = args[2];
@@ -946,7 +1139,13 @@ void scheduler_loop_tick(bool hasActiveWork) {
 
                 // Handle post-execution logic
                 if (p->state == ProcessState::FINISHED) {
-                    core.running = nullptr;
+                core.running = nullptr;
+                rescheduleNeeded = true;
+                }
+                else if (p->state == ProcessState::MEMORY_VIOLATED) {
+                    // Log the violation to console
+                    std::cout << "Process " << p->name << " (" << p->pid << ") terminated due to Memory Violation.\n";
+                    core.running = nullptr; // Release the core
                     rescheduleNeeded = true;
                 }
                 else if (p->pc >= p->instructions.size()) {
