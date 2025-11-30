@@ -139,13 +139,14 @@ public:
     void execute(Process& p) override {
         // Check Symbol Table Page (Address 0)
         if (!memoryManager->isPageResident(p.pid, 0)) {
-            std::cout << "Page Fault: Symbol Table not resident. Deferring DECLARE.\n";
             int dummy;
             memoryManager->access(p.pid, 0, false, dummy); // Trigger load of Page 0
             return;
         }
 
         p.variables[var] = clampUint16(val);
+        int dummyVal = 0;
+        memoryManager->access(p.pid, 0, true, dummyVal);
         p.pc++;
     }
     std::string toString() const override {
@@ -160,9 +161,19 @@ public:
         : target(t), op1(o1), op2(o2) {
     }
     void execute(Process& p) override {
+        if (!memoryManager->isPageResident(p.pid, 0)) {
+            int dummy;
+            memoryManager->access(p.pid, 0, false, dummy);
+            return;
+        }
+
         int v1 = resolveValue(p, op1);
         int v2 = resolveValue(p, op2);
         p.variables[target] = clampUint16(v1 + v2);
+
+        int dummyVal = 0;
+        memoryManager->access(p.pid, 0, true, dummyVal);
+
         p.pc++;
     }
     std::string toString() const override {
@@ -177,9 +188,19 @@ public:
         : target(t), op1(o1), op2(o2) {
     }
     void execute(Process& p) override {
+        if (!memoryManager->isPageResident(p.pid, 0)) {
+            int dummy;
+            memoryManager->access(p.pid, 0, false, dummy);
+            return;
+        }
+
         int v1 = resolveValue(p, op1);
         int v2 = resolveValue(p, op2);
         p.variables[target] = clampUint16(v1 - v2);
+
+        int dummyVal = 0;
+        memoryManager->access(p.pid, 0, true, dummyVal);
+
         p.pc++;
     }
     std::string toString() const override {
@@ -263,14 +284,12 @@ public:
 
         // 1. Bounds Check
         if (addr < 0 || addr >= p.memory_required) {
-            std::cout << "Error: Memory Violation in process " << p.pid << " (Addr " << addrStr << ")\n";
             p.state = ProcessState::MEMORY_VIOLATED;
             return;
         }
 
         // 2. Paging Logic
         if (!memoryManager->isPageResident(p.pid, addr)) {
-            std::cout << "Page Fault: Address " << addrStr << " not resident. Deferring execution.\n";
             int dummy = 0;
             memoryManager->access(p.pid, addr, true, dummy); // Trigger load
             return; // Retry next tick
@@ -299,14 +318,12 @@ public:
         
         // 1. Bounds Check
         if (addr < 0 || addr >= p.memory_required) {
-            std::cout << "Error: Memory Violation in process " << p.pid << " (Addr " << addrStr << ")\n";
             p.state = ProcessState::MEMORY_VIOLATED;
             return;
         }
 
         // 2. Paging Logic (Check Residence)
         if (!memoryManager->isPageResident(p.pid, addr)) {
-            std::cout << "Page Fault: Address " << addrStr << " not resident. Deferring execution.\n";
             
             // Trigger the load logic (simulated IO delay)
             int dummy;
@@ -554,8 +571,8 @@ std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count, i
         "PRINT('Value of sum: ' + sum)",
         "SLEEP(2)",
         "FOR([PRINT('Hello world!')], 2)",
-        "STORE(%ADDR%, 42)",
-        "LOAD(%ADDR%, val)",
+        "WRITE(%ADDR%, 42)",   
+        "READ(val, %ADDR%)",  
         "PRINT('Loaded value: ' + val)"
     };
     for (int i = 0; i < count; ++i) {
