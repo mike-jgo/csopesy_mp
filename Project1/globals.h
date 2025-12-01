@@ -11,7 +11,7 @@
 
 // === Enums ===
 enum class ConsoleMode { MAIN, PROCESS };
-enum class ProcessState { READY, RUNNING, SLEEPING, FINISHED };
+enum class ProcessState { READY, RUNNING, SLEEPING, FINISHED, MEMORY_VIOLATED };
 
 // === Config structure ===
 struct Config {
@@ -36,12 +36,7 @@ struct Config {
 class Process;
 
 // === Instruction Interface ===
-class Instruction {
-public:
-    virtual ~Instruction() = default;
-    virtual void execute(Process& p) = 0;
-    virtual std::string toString() const = 0;
-};
+class Instruction;
 
 // === Process Class ===
 class Process {
@@ -52,7 +47,8 @@ public:
     std::vector<std::shared_ptr<Instruction>> instructions;
     int pc = 0;
     std::vector<std::string> logs;
-    std::unordered_map<std::string, int> variables;
+    std::unordered_map<std::string, int> symbol_table;
+    int symbol_cursor = 0;
     int sleep_counter = 0;
     int quantum_used = 0;
     bool needs_cpu = true;
@@ -63,6 +59,8 @@ public:
     static constexpr size_t MAX_SYMBOL_TABLE_SIZE = 64;
     static constexpr size_t VAR_SIZE = 2;
     static constexpr size_t MAX_VARIABLES = MAX_SYMBOL_TABLE_SIZE / VAR_SIZE;
+    static constexpr size_t SYMBOL_TABLE_SIZE = 64; 
+    static constexpr int SYMBOL_TABLE_PAGE = 0; // Symbol table always lives in Page 0
 
     
     // Memory Management

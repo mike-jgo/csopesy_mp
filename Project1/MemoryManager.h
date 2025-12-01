@@ -40,6 +40,9 @@ public:
     // Allocate frames for a process (called on process creation)
     void initializePageTable(Process& p, int required_pages);
 
+    // Helper to check if a page is resident
+    bool isPageResident(int pid, int virtual_addr);
+
     // Debug/SMI helper
     size_t getFreeFrameCount() const;
     size_t getTotalFrames() const;

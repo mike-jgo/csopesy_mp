@@ -13849,3 +13849,43 @@
 [2025-11-29 19:37:14] [Tick 1023 | Q1/5] p1 [PID 1] pc=870/5074 -> SUBTRACT(diff, y, x) | State=RUNNING
 [2025-11-29 19:37:14] [Tick 1024 | Q2/5] p1 [PID 1] pc=871/5074 -> SLEEP(2) | State=RUNNING
 [2025-11-29 19:37:15] [Tick 1026 | Q3/5] p1 [PID 1] pc=872/5074 -> DECLARE(x, 5) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 1 | Q1/5] process1 [PID 1] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 2 | Q1/5] process1 [PID 1] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 3 | Q2/5] process1 [PID 1] pc=1/6 -> DECLARE(varB, 5) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 4 | Q3/5] process1 [PID 1] pc=2/6 -> ADD(varA, varA, varB) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 5 | Q4/5] process1 [PID 1] pc=3/6 -> WRITE(0x500, varA) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 6 | Q4/5] process1 [PID 1] pc=3/6 -> WRITE(0x500, varA) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 7 | Q5/5] process1 [PID 1] pc=4/6 -> READ(varC, 0x500) | State=RUNNING
+[2025-12-01 03:07:54] [Tick 8 | Q1/5] process1 [PID 1] pc=5/6 -> PRINT(\"Result:\" + varC) | State=RUNNING
+[2025-12-01 03:10:13] [Tick 9 | Q1/5] process2 [PID 2] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:10:13] [Tick 10 | Q1/5] process2 [PID 2] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:10:13] [Tick 11 | Q2/5] process2 [PID 2] pc=1/6 -> DECLARE(varB, 5) | State=RUNNING
+[2025-12-01 03:10:13] [Tick 12 | Q3/5] process2 [PID 2] pc=2/6 -> ADD(varA, varA, varB) | State=RUNNING
+[2025-12-01 03:10:13] [Tick 13 | Q4/5] process2 [PID 2] pc=3/6 -> WRITE(0x500, varA) | State=RUNNING
+[2025-12-01 03:10:13] [Tick 14 | Q4/5] process2 [PID 2] pc=3/6 -> WRITE(0x500, varA) | State=RUNNING
+[2025-12-01 03:10:14] [Tick 15 | Q5/5] process2 [PID 2] pc=4/6 -> READ(varC, 0x500) | State=RUNNING
+[2025-12-01 03:10:14] [Tick 16 | Q1/5] process2 [PID 2] pc=5/6 -> PRINT(\"Result:\" + varC) | State=RUNNING
+[2025-12-01 03:11:16] [Tick 17 | Q1/5] process3 [PID 3] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 18 | Q1/5] process3 [PID 3] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 19 | Q2/5] process3 [PID 3] pc=1/6 -> DECLARE(varB, 5) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 20 | Q3/5] process3 [PID 3] pc=2/6 -> ADD(varA, varA, varB) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 21 | Q4/5] process3 [PID 3] pc=3/6 -> WRITE(0x500, varA) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 22 | Q4/5] process3 [PID 3] pc=3/6 -> WRITE(0x500, varA) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 23 | Q5/5] process3 [PID 3] pc=4/6 -> READ(varC, 0x500) | State=RUNNING
+[2025-12-01 03:11:17] [Tick 24 | Q1/5] process3 [PID 3] pc=5/6 -> PRINT("Result:" + varC) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 25 | Q1/5] process4 [PID 4] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 26 | Q1/5] process4 [PID 4] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 27 | Q2/5] process4 [PID 4] pc=1/6 -> DECLARE(varB, 5) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 28 | Q3/5] process4 [PID 4] pc=2/6 -> ADD(varA, varA, varB) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 29 | Q4/5] process4 [PID 4] pc=3/6 -> WRITE(0x600, varA) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 30 | Q4/5] process4 [PID 4] pc=3/6 -> WRITE(0x600, varA) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 31 | Q5/5] process4 [PID 4] pc=4/6 -> READ(varC, 0x600) | State=RUNNING
+[2025-12-01 03:11:37] [Tick 32 | Q1/5] process4 [PID 4] pc=5/6 -> PRINT("Result:" + varC) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 33 | Q1/5] process5 [PID 5] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 34 | Q1/5] process5 [PID 5] pc=0/6 -> DECLARE(varA, 10) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 35 | Q2/5] process5 [PID 5] pc=1/6 -> DECLARE(varB, 5) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 36 | Q3/5] process5 [PID 5] pc=2/6 -> ADD(varA, varA, varB) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 37 | Q4/5] process5 [PID 5] pc=3/6 -> WRITE(0x600, varA) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 38 | Q4/5] process5 [PID 5] pc=3/6 -> WRITE(0x600, varA) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 39 | Q5/5] process5 [PID 5] pc=4/6 -> READ(varC, 0x600) | State=RUNNING
+[2025-12-01 03:14:37] [Tick 40 | Q1/5] process5 [PID 5] pc=5/6 -> PRINT('Result:' + varC) | State=RUNNING
