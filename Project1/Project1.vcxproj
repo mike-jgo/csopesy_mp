@@ -125,12 +125,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Instruction.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="emulator.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="globals.h" />
+    <ClInclude Include="Instruction.h" />
     <ClInclude Include="MemoryManager.h" />
   </ItemGroup>
   <ItemGroup>
