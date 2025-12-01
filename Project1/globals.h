@@ -36,12 +36,7 @@ struct Config {
 class Process;
 
 // === Instruction Interface ===
-class Instruction {
-public:
-    virtual ~Instruction() = default;
-    virtual void execute(Process& p) = 0;
-    virtual std::string toString() const = 0;
-};
+class Instruction;
 
 // === Process Class ===
 class Process {
