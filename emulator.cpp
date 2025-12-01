@@ -1510,10 +1510,24 @@ void processSmiGlobal() {
         }
     }
 
-    float utilization = (totalCores > 0)
-        ? (float)runningCount / totalCores * 100.0f
-        : 0.0f;
-    
+    std::deque<Process> snapshot;
+    size_t rrCursorSnapshot = 0;
+    {
+        std::lock_guard<std::mutex> lock(processTableMutex);
+        if (processTable.empty()) {
+            std::cout << "No processes created.\n";
+            return;
+        }
+        snapshot.assign(processTable.begin(), processTable.end());
+        rrCursorSnapshot = rrCursor;
+        if (!snapshot.empty()) {
+            rrCursorSnapshot %= snapshot.size();
+        }
+    }
+
+    int totalCores = systemConfig.num_cpu;
+    int runningCount = 0, finishedCount = 0, readyCount = 0, sleepingCount = 0;
+
     size_t total_mem = systemConfig.max_overall_mem;
     size_t used_mem  = memoryManager->getUsedMemory();
     size_t free_mem  = total_mem - used_mem;
@@ -1563,6 +1577,10 @@ void processSmiGlobal() {
             ramUsed
         });
     }
+
+    float utilization = (totalCores > 0)
+        ? (float)runningCount / totalCores * 100.0f
+        : 0.0f;
 
     std::sort(list.begin(), list.end(),
               [](const ProcSummary& a, const ProcSummary& b) {
@@ -1617,8 +1635,6 @@ void processSmiGlobal() {
 
     std::cout << "===========================================================================\n\n";
 }
-
-
 
 // === INPUT LOOP ===
 void inputLoop() {
