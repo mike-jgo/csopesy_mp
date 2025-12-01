@@ -1494,12 +1494,26 @@ void processSmiGlobal() {
         return;
     }
 
+    // ---- CPU UTILIZATION ----
     std::deque<Process> snapshot;
+    size_t rrCursorSnapshot = 0;
     {
         std::lock_guard<std::mutex> lock(processTableMutex);
+        if (processTable.empty()) {
+            std::cout << "No processes created.\n";
+            return;
+        }
         snapshot.assign(processTable.begin(), processTable.end());
+        rrCursorSnapshot = rrCursor;
+        if (!snapshot.empty()) {
+            rrCursorSnapshot %= snapshot.size();
+        }
     }
 
+    float utilization = (totalCores > 0)
+        ? (float)runningCount / totalCores * 100.0f
+        : 0.0f;
+    
     size_t total_mem = systemConfig.max_overall_mem;
     size_t used_mem  = memoryManager->getUsedMemory();
     size_t free_mem  = total_mem - used_mem;
@@ -1559,9 +1573,11 @@ void processSmiGlobal() {
     for (auto& p : list) totalResidentRAM += p.ramUsage;
 
     std::cout << "\n========================== PROCESS-SMI (GLOBAL) ==========================\n";
+    std::cout << "CPU Utilization: " << utilization << "%\n";
     std::cout << "Total Memory: " << total_mem << " bytes\n";
     std::cout << "Used Memory:  " << used_mem  << " bytes\n";
     std::cout << "Free Memory:  " << free_mem  << " bytes\n";
+    std::cout << "Memory Util:" << (used_mem/total_mem) * 100.f;
     std::cout << "--------------------------------------------------------------------------\n";
     std::cout << "Total Resident Memory (All Processes): " 
               << totalResidentRAM << " bytes\n";
