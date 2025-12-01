@@ -1083,6 +1083,154 @@ void vmstatCommand() {
     std::cout << "=================\n\n";
 }
 
+void processSmiGlobal() {
+    if (!initialized || !memoryManager) {
+        std::cout << "Error: System not initialized.\n";
+        return;
+    }
+
+    // ---- CPU UTILIZATION ----
+    std::deque<Process> snapshot;
+    size_t rrCursorSnapshot = 0;
+    {
+        std::lock_guard<std::mutex> lock(processTableMutex);
+        if (processTable.empty()) {
+            std::cout << "No processes created.\n";
+            return;
+        }
+        snapshot.assign(processTable.begin(), processTable.end());
+        rrCursorSnapshot = rrCursor;
+        if (!snapshot.empty()) {
+            rrCursorSnapshot %= snapshot.size();
+        }
+    }
+
+    std::deque<Process> snapshot;
+    size_t rrCursorSnapshot = 0;
+    {
+        std::lock_guard<std::mutex> lock(processTableMutex);
+        if (processTable.empty()) {
+            std::cout << "No processes created.\n";
+            return;
+        }
+        snapshot.assign(processTable.begin(), processTable.end());
+        rrCursorSnapshot = rrCursor;
+        if (!snapshot.empty()) {
+            rrCursorSnapshot %= snapshot.size();
+        }
+    }
+
+    int totalCores = systemConfig.num_cpu;
+    int runningCount = 0, finishedCount = 0, readyCount = 0, sleepingCount = 0;
+
+    size_t total_mem = systemConfig.max_overall_mem;
+    size_t used_mem = memoryManager->getUsedMemory();
+    size_t free_mem = total_mem - used_mem;
+
+    struct ProcSummary {
+        std::string name;
+        int pid;
+        std::string state;
+        int memReq;
+        int totalPages;
+        int residentPages;
+        int dirtyPages;
+        size_t ramUsage;
+    };
+
+    std::vector<ProcSummary> list;
+
+    for (const auto& p : snapshot) {
+        int totalPages = 0, resident = 0, dirty = 0;
+
+        for (const auto& [pg, entry] : p.page_table) {
+            totalPages++;
+            if (entry.valid) resident++;
+            if (entry.dirty) dirty++;
+        }
+
+        std::string stateStr;
+        switch (p.state) {
+        case ProcessState::READY:          stateStr = "READY"; break;
+        case ProcessState::RUNNING:        stateStr = "RUNNING"; break;
+        case ProcessState::SLEEPING:       stateStr = "SLEEPING"; break;
+        case ProcessState::FINISHED:       stateStr = "FINISHED"; break;
+        case ProcessState::MEMORY_VIOLATED:stateStr = "MEM VIOL"; break;
+        default:                           stateStr = "UNKNOWN"; break;
+        }
+
+        size_t ramUsed = static_cast<size_t>(resident) * systemConfig.mem_per_frame;
+
+        list.push_back({
+            p.name,
+            p.pid,
+            stateStr,
+            p.memory_required,
+            totalPages,
+            resident,
+            dirty,
+            ramUsed
+            });
+    }
+
+    float utilization = (totalCores > 0)
+        ? (float)runningCount / totalCores * 100.0f
+        : 0.0f;
+
+    std::sort(list.begin(), list.end(),
+        [](const ProcSummary& a, const ProcSummary& b) {
+            return a.ramUsage > b.ramUsage;
+        });
+
+    size_t totalResidentRAM = 0;
+    for (auto& p : list) totalResidentRAM += p.ramUsage;
+
+    std::cout << "\n========================== PROCESS-SMI (GLOBAL) ==========================\n";
+    std::cout << "CPU Utilization: " << utilization << "%\n";
+    std::cout << "Total Memory: " << total_mem << " bytes\n";
+    std::cout << "Used Memory:  " << used_mem << " bytes\n";
+    std::cout << "Free Memory:  " << free_mem << " bytes\n";
+    std::cout << "Memory Util:" << (used_mem / total_mem) * 100.f;
+    std::cout << "--------------------------------------------------------------------------\n";
+    std::cout << "Total Resident Memory (All Processes): "
+        << totalResidentRAM << " bytes\n";
+    std::cout << "--------------------------------------------------------------------------\n";
+
+    if (list.empty()) {
+        std::cout << "No processes found.\n";
+        std::cout << "==================================================================\n\n";
+        return;
+    }
+
+    std::cout << std::left
+        << std::setw(12) << "Name"
+        << std::setw(7) << "PID"
+        << std::setw(12) << "State"
+        << std::setw(10) << "MemReq"
+        << std::setw(8) << "Pages"
+        << std::setw(10) << "Resident"
+        << std::setw(8) << "Dirty"
+        << std::setw(10) << "RAM Used"
+        << "\n";
+
+    std::cout << "---------------------------------------------------------------------------\n";
+
+    for (const auto& p : list) {
+        std::cout << std::left
+            << std::setw(12) << p.name
+            << std::setw(7) << p.pid
+            << std::setw(12) << p.state
+            << std::setw(10) << p.memReq
+            << std::setw(8) << p.totalPages
+            << std::setw(10) << p.residentPages
+            << std::setw(8) << p.dirtyPages
+            << std::setw(10) << p.ramUsage
+            << "\n";
+    }
+
+    std::cout << "===========================================================================\n\n";
+}
+
 // === INPUT LOOP ===
 void inputLoop() {
     std::string input;
@@ -1110,6 +1258,8 @@ void inputLoop() {
                     << "  scheduler stop      - Stop automatic process creation\n"
                     << "  report-util         - Generate CPU report\n"
                     << "  report-trace        - Show execution trace log\n"
+                    << "  vmstat              - Show system performance\n"
+                    << "  process-smi         - Show process CPU and memory utilization\n"
                     << "  exit                - Quit program\n";
             }
             else if (cmd == "initialize") initializeCommand();
@@ -1117,6 +1267,7 @@ void inputLoop() {
             else if (cmd == "scheduler") handleSchedulerCommand(tokens);
             else if (cmd == "report-util") reportUtilCommand();
             else if (cmd == "vmstat") vmstatCommand();
+            else if (cmd == "process-smi") processSmiGlobal();
             else if (cmd == "report-trace") {
                 std::ifstream trace("csopesy-trace.txt");
                 if (!trace.is_open()) {
