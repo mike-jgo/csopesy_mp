@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "Instruction.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -34,302 +35,35 @@ size_t rrCursor = 0;
 void scheduler_loop_tick(bool hasActiveWork);
 
 // === Utility functions ===
-std::string trim(const std::string& str) {
+static std::string trim(const std::string& str) {
     const auto first = str.find_first_not_of(" \t\n\r");
     if (first == std::string::npos) return "";
     const auto last = str.find_last_not_of(" \t\n\r");
     return str.substr(first, last - first + 1);
 }
-
 std::vector<std::string> tokenize(const std::string& input) {
-    std::istringstream stream(input);
     std::vector<std::string> tokens;
-    std::string token;
-    while (stream >> token) tokens.push_back(token);
+    std::string current_token;
+    bool in_quotes = false;
+    
+    for (size_t i = 0; i < input.length(); ++i) {
+        char c = input[i];
+        if (c == '"') {
+            in_quotes = !in_quotes;
+            current_token += c;
+        } else if (std::isspace(c) && !in_quotes) {
+            if (!current_token.empty()) {
+                tokens.push_back(current_token);
+                current_token.clear();
+            }
+        } else {
+            current_token += c;
+        }
+    }
+    if (!current_token.empty()) {
+        tokens.push_back(current_token);
+    }
     return tokens;
-}
-
-
-
-// Split by '+' but ignore '+' inside single quotes
-std::vector<std::string> splitPrintExpr(const std::string& expr) {
-    std::vector<std::string> parts;
-    std::string cur;
-    bool inStr = false; // single-quoted string
-    for (size_t i = 0; i < expr.size(); ++i) {
-        char c = expr[i];
-        if (c == '\'') {
-            inStr = !inStr;
-            cur.push_back(c);
-        }
-        else if (c == '+' && !inStr) {
-            parts.push_back(trim(cur));
-            cur.clear();
-        }
-        else {
-            cur.push_back(c);
-        }
-    }
-    if (!cur.empty()) parts.push_back(trim(cur));
-    return parts;
-}
-
-// Remove surrounding single quotes if present
-bool isSingleQuoted(const std::string& s) {
-    return s.size() >= 2 && s.front() == '\'' && s.back() == '\'';
-}
-std::string unquoteSingle(const std::string& s) {
-    if (isSingleQuoted(s)) return s.substr(1, s.size() - 2);
-    return s;
-}
-
-// Resolve a token to either an integer or a variable value
-int resolveValue(Process& p, const std::string& token) {
-    try {
-        return std::stoi(token);
-    }
-    catch (...) {
-
-    }
-
-    if (!p.variables.count(token)) {
-        p.variables[token] = 0;
-    }
-    return p.variables[token];
-}
-
-// === Instruction Implementations ===
-
-// Helper to clamp uint16
-int clampUint16(int val) {
-    if (val < 0) return 0;
-    if (val > 65535) return 65535;
-    return val;
-}
-
-class DeclareInstruction : public Instruction {
-    std::string var;
-    int val;
-public:
-    DeclareInstruction(const std::string& v, int value) : var(v), val(value) {}
-    void execute(Process& p) override {
-        p.variables[var] = val;
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "DECLARE(" + var + ", " + std::to_string(val) + ")";
-    }
-};
-
-class AddInstruction : public Instruction {
-    std::string target, op1, op2;
-public:
-    AddInstruction(const std::string& t, const std::string& o1, const std::string& o2)
-        : target(t), op1(o1), op2(o2) {
-    }
-    void execute(Process& p) override {
-        int v1 = resolveValue(p, op1);
-        int v2 = resolveValue(p, op2);
-        p.variables[target] = clampUint16(v1 + v2);
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "ADD(" + target + ", " + op1 + ", " + op2 + ")";
-    }
-};
-
-class SubtractInstruction : public Instruction {
-    std::string target, op1, op2;
-public:
-    SubtractInstruction(const std::string& t, const std::string& o1, const std::string& o2)
-        : target(t), op1(o1), op2(o2) {
-    }
-    void execute(Process& p) override {
-        int v1 = resolveValue(p, op1);
-        int v2 = resolveValue(p, op2);
-        p.variables[target] = clampUint16(v1 - v2);
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "SUBTRACT(" + target + ", " + op1 + ", " + op2 + ")";
-    }
-};
-
-class PrintInstruction : public Instruction {
-    std::string expression;
-public:
-    PrintInstruction(const std::string& expr) : expression(expr) {}
-    void execute(Process& p) override {
-        std::vector<std::string> parts = splitPrintExpr(expression);
-        std::ostringstream out;
-
-        for (auto& part : parts) {
-            if (isSingleQuoted(part)) {
-                out << unquoteSingle(part);
-            }
-            else {
-                try {
-                    int v = std::stoi(part);
-                    out << v;
-                }
-                catch (...) {
-                    int v = resolveValue(p, part);
-                    out << v;
-                }
-            }
-        }
-        p.logs.push_back(out.str());
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "PRINT(" + expression + ")";
-    }
-};
-
-class SleepInstruction : public Instruction {
-    int duration;
-public:
-    SleepInstruction(int d) : duration(d) {}
-    void execute(Process& p) override {
-        p.sleep_counter = duration;
-        p.state = ProcessState::SLEEPING;
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "SLEEP(" + std::to_string(duration) + ")";
-    }
-};
-
-class ForInstruction : public Instruction {
-    std::string body;
-    int repeats;
-public:
-    ForInstruction(const std::string& b, int r) : body(b), repeats(r) {}
-    void execute(Process& p) override;
-    std::string toString() const override {
-        return "FOR([" + body + "], " + std::to_string(repeats) + ")";
-    }
-};
-
-class StoreInstruction : public Instruction {
-    int address;
-    int value;
-public:
-    StoreInstruction(int addr, int val) : address(addr), value(val) {}
-    void execute(Process& p) override {
-        int dummy;
-        if (memoryManager->access(p.pid, address, true, value)) {
-            // Success
-        } else {
-            std::cout << "Error: Memory access violation in process " << p.pid << "\n";
-            // p.state = ProcessState::FINISHED; // Optional: kill process
-        }
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "STORE(" + std::to_string(address) + ", " + std::to_string(value) + ")";
-    }
-};
-
-class LoadInstruction : public Instruction {
-    int address;
-    std::string var;
-public:
-    LoadInstruction(int addr, const std::string& v) : address(addr), var(v) {}
-    void execute(Process& p) override {
-        int val = 0;
-        if (memoryManager->access(p.pid, address, false, val)) {
-            p.variables[var] = val;
-        } else {
-            std::cout << "Error: Memory access violation in process " << p.pid << "\n";
-        }
-        p.pc++;
-    }
-    std::string toString() const override {
-        return "LOAD(" + std::to_string(address) + ", " + var + ")";
-    }
-};
-
-// === Parsing ===
-
-std::shared_ptr<Instruction> parseInstruction(const std::string& line) {
-    std::string instr = trim(line);
-    if (instr.empty()) return nullptr;
-
-    std::smatch match;
-
-    // DECLARE
-    static std::regex declareRegex(R"(DECLARE\((\w+),\s*(-?\d+)\))");
-    if (std::regex_match(instr, match, declareRegex)) {
-        return std::make_shared<DeclareInstruction>(match[1], std::stoi(match[2]));
-    }
-
-    // ADD
-    static std::regex addRegex(R"(ADD\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
-    if (std::regex_match(instr, match, addRegex)) {
-        return std::make_shared<AddInstruction>(match[1], match[2], match[3]);
-    }
-
-    // SUBTRACT
-    static std::regex subRegex(R"(SUBTRACT\((\w+),\s*([\w\-]+),\s*([\w\-]+)\))");
-    if (std::regex_match(instr, match, subRegex)) {
-        return std::make_shared<SubtractInstruction>(match[1], match[2], match[3]);
-    }
-
-    // PRINT
-    static std::regex printRegex(R"(PRINT\((.*)\))");
-    if (std::regex_match(instr, match, printRegex)) {
-        return std::make_shared<PrintInstruction>(trim(match[1]));
-    }
-
-    // SLEEP
-    static std::regex sleepRegex(R"(SLEEP\((\d+)\))");
-    if (std::regex_match(instr, match, sleepRegex)) {
-        return std::make_shared<SleepInstruction>(std::stoi(match[1]));
-    }
-
-    // FOR
-    static std::regex forRegex(R"(FOR\(\[([^\]]+)\],\s*(\d+)\))");
-    if (std::regex_match(instr, match, forRegex)) {
-        return std::make_shared<ForInstruction>(match[1], std::stoi(match[2]));
-    }
-
-    // STORE
-    static std::regex storeRegex(R"(STORE\((\d+),\s*(\d+)\))");
-    if (std::regex_match(instr, match, storeRegex)) {
-        return std::make_shared<StoreInstruction>(std::stoi(match[1]), std::stoi(match[2]));
-    }
-
-    // LOAD
-    static std::regex loadRegex(R"(LOAD\((\d+),\s*(\w+)\))");
-    if (std::regex_match(instr, match, loadRegex)) {
-        return std::make_shared<LoadInstruction>(std::stoi(match[1]), match[2]);
-    }
-
-    return nullptr;
-}
-
-void ForInstruction::execute(Process& p) {
-    std::vector<std::shared_ptr<Instruction>> expanded;
-    std::stringstream ss(body);
-    std::string temp;
-    while (std::getline(ss, temp, ';')) {
-        auto inst = parseInstruction(temp);
-        if (inst) expanded.push_back(inst);
-    }
-
-    std::vector<std::shared_ptr<Instruction>> fullExpansion;
-    for (int i = 0; i < repeats; ++i) {
-        for (const auto& inst : expanded) {
-            fullExpansion.push_back(inst);
-        }
-    }
-
-    if (p.pc < p.instructions.size()) {
-        auto it = p.instructions.begin() + p.pc;
-        it = p.instructions.erase(it);
-        p.instructions.insert(it, fullExpansion.begin(), fullExpansion.end());
-    }
 }
 
 // === Config handling ===
@@ -443,8 +177,8 @@ std::vector<std::shared_ptr<Instruction>> generateDummyInstructions(int count, i
         "PRINT('Value of sum: ' + sum)",
         "SLEEP(2)",
         "FOR([PRINT('Hello world!')], 2)",
-        "STORE(%ADDR%, 42)",
-        "LOAD(%ADDR%, val)",
+        "WRITE(%ADDR%, 42)",   
+        "READ(val, %ADDR%)",  
         "PRINT('Loaded value: ' + val)"
     };
     for (int i = 0; i < count; ++i) {
@@ -661,6 +395,88 @@ void handleScreenCommand(const std::vector<std::string>& args) {
         }
         
         std::cout << "Created new process: " << name << " (PID " << newProc.pid << ") with " << memory << " bytes.\n";
+        std::cout << "Attached to process screen.\n";
+        ensureSchedulerActive();
+
+        mode = ConsoleMode::PROCESS;
+        current_process = name;
+    }
+    // --- Create new process with instructions (-c) ---
+    else if (flag == "-c") {
+        if (args.size() != 5) {
+            std::cout << "Usage: screen -c <process_name> <memory> \"<instructions>\"\n";
+            return;
+        }
+
+        std::string name = args[2];
+        int memory = 0;
+        try {
+            memory = std::stoi(args[3]);
+        }
+        catch (...) {
+            std::cout << "Error: Invalid memory argument. Must be an integer.\n";
+            return;
+        }
+
+        // Validate power of 2
+        if (memory <= 0 || (memory & (memory - 1)) != 0) {
+            std::cout << "Error: Memory must be a power of 2.\n";
+            return;
+        }
+
+        // Validate range
+        if (memory < systemConfig.min_mem_per_proc || memory > systemConfig.max_mem_per_proc) {
+            std::cout << "invalid memory allocation\n";
+            return;
+        }
+
+        std::string instrString = args[4];
+        // Remove surrounding quotes if present
+        if (instrString.size() >= 2 && instrString.front() == '"' && instrString.back() == '"') {
+            instrString = instrString.substr(1, instrString.size() - 2);
+        }
+
+        std::vector<std::shared_ptr<Instruction>> parsedInstructions;
+        std::stringstream ss(instrString);
+        std::string segment;
+        
+        while (std::getline(ss, segment, ';')) {
+            std::string trimmed = trim(segment);
+            if (trimmed.empty()) continue;
+            auto inst = parseInstruction(trimmed);
+            if (!inst) {
+                std::cout << "Invalid command: " << trimmed << "\n";
+                return;
+            }
+            parsedInstructions.push_back(inst);
+        }
+
+        if (parsedInstructions.empty() || parsedInstructions.size() > 50) {
+            std::cout << "invalid command\n";
+            return;
+        }
+
+        Process newProc;
+        newProc.name = name;
+        newProc.state = ProcessState::READY;
+        newProc.instructions = parsedInstructions;
+        newProc.memory_required = memory;
+
+        // Memory Allocation
+        int pages = (memory + systemConfig.mem_per_frame - 1) / systemConfig.mem_per_frame;
+        memoryManager->initializePageTable(newProc, pages);
+
+        {
+            std::lock_guard<std::mutex> lock(processTableMutex);
+            if (findProcess(name)) {
+                std::cout << "Process " << name << " already exists.\n";
+                return;
+            }
+            newProc.pid = nextPID++;
+            processTable.push_back(newProc);
+        }
+
+        std::cout << "Created new process: " << name << " (PID " << newProc.pid << ") with " << memory << " bytes and " << parsedInstructions.size() << " instructions.\n";
         std::cout << "Attached to process screen.\n";
         ensureSchedulerActive();
 
@@ -946,7 +762,13 @@ void scheduler_loop_tick(bool hasActiveWork) {
 
                 // Handle post-execution logic
                 if (p->state == ProcessState::FINISHED) {
-                    core.running = nullptr;
+                core.running = nullptr;
+                rescheduleNeeded = true;
+                }
+                else if (p->state == ProcessState::MEMORY_VIOLATED) {
+                    // Log the violation to console
+                    std::cout << "Process " << p->name << " (" << p->pid << ") terminated due to Memory Violation.\n";
+                    core.running = nullptr; // Release the core
                     rescheduleNeeded = true;
                 }
                 else if (p->pc >= p->instructions.size()) {
@@ -1169,17 +991,37 @@ void processSmiCommand() {
     case ProcessState::RUNNING: stateStr = "RUNNING"; break;
     case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
     case ProcessState::FINISHED: stateStr = "FINISHED"; break;
+    case ProcessState::MEMORY_VIOLATED: stateStr = "MEMORY_VIOLATED"; break;
     }
     std::cout << "State: " << stateStr << "\n";
 
     // Instruction progress
     std::cout << "Instruction progress: " << procSnapshot.pc << " / " << procSnapshot.instructions.size() << "\n";
 
-    // Display variables
-    if (!procSnapshot.variables.empty()) {
-        std::cout << "Variables:\n";
-        for (const auto& [var, val] : procSnapshot.variables)
-            std::cout << "  " << var << " = " << val << "\n";
+    // === Display Variables with Values from Memory ===
+    if (!procSnapshot.symbol_table.empty()) {
+        std::cout << "Variables (Stored in Page 0):\n";
+        for (const auto& [name, addr] : procSnapshot.symbol_table) {
+            std::cout << "  " << name << " @ Address " << addr;
+
+            // Check if the page containing this variable is currently in RAM
+            if (memoryManager->isPageResident(procSnapshot.pid, addr)) {
+                int val = 0;
+                // Attempt to read the value (this updates LRU but that is acceptable)
+                if (memoryManager->access(procSnapshot.pid, addr, false, val)) {
+                    std::cout << " = " << val;
+                }
+                else {
+                    std::cout << " = (Error reading)";
+                }
+            }
+            else {
+                // If the page is not in RAM, we show this tag. 
+                // This adds realism: you can't see the value because it's on the 'disk'.
+                std::cout << " = [Swapped Out]";
+            }
+            std::cout << "\n";
+        }
     }
     else {
         std::cout << "Variables: (none)\n";
@@ -1204,11 +1046,11 @@ void processSmiCommand() {
     std::cout << "Free Frames: " << memoryManager->getFreeFrameCount() << "\n";
     std::cout << "Page | Frame | Valid | Dirty | Last Accessed\n";
     for (const auto& [page, entry] : procSnapshot.page_table) {
-        std::cout << "  " << page << "  | " 
-                  << (entry.valid ? std::to_string(entry.frame_num) : "-") << "   | "
-                  << (entry.valid ? "Yes" : "No ") << "   | "
-                  << (entry.dirty ? "Yes" : "No ") << "   | "
-                  << entry.last_accessed << "\n";
+        std::cout << "  " << page << "  | "
+            << (entry.valid ? std::to_string(entry.frame_num) : "-") << "   | "
+            << (entry.valid ? "Yes" : "No ") << "   | "
+            << (entry.dirty ? "Yes" : "No ") << "   | "
+            << entry.last_accessed << "\n";
     }
 
     std::cout << "=====================\n\n";

@@ -86,6 +86,31 @@ void MemoryManager::initializePageTable(Process& p, int required_pages) {
     }
 }
 
+bool MemoryManager::isPageResident(int pid, int virtual_addr) {
+    std::lock_guard<std::mutex> lock(mem_mutex);
+    
+    // Find process securely
+    Process* proc = nullptr;
+    {
+        std::lock_guard<std::mutex> pLock(processTableMutex);
+        for (auto& p : processTable) {
+            if (p.pid == pid) {
+                proc = &p;
+                break;
+            }
+        }
+    }
+    if (!proc) return false;
+
+    int page_num = virtual_addr / frame_size;
+    
+    // Check if page entry exists and is valid (resident)
+    if (proc->page_table.find(page_num) != proc->page_table.end()) {
+        return proc->page_table[page_num].valid;
+    }
+    return false;
+}
+
 bool MemoryManager::handlePageFault(int pid, int page_num) {
     int frame_idx = allocateFrame();
     if (frame_idx == -1) return false;
