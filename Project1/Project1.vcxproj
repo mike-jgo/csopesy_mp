@@ -134,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="config.txt" />
+    <Text Include="csopesy-backing-store.txt" />
     <Text Include="csopesy-log.txt" />
     <Text Include="csopesy-trace.txt" />
   </ItemGroup>
