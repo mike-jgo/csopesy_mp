@@ -52,7 +52,8 @@ public:
     std::vector<std::shared_ptr<Instruction>> instructions;
     int pc = 0;
     std::vector<std::string> logs;
-    std::unordered_map<std::string, int> variables;
+    std::unordered_map<std::string, int> symbol_table;
+    int symbol_cursor = 0;
     int sleep_counter = 0;
     int quantum_used = 0;
     bool needs_cpu = true;
