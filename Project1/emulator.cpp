@@ -98,21 +98,6 @@ std::string unquoteSingle(const std::string& s) {
     return s;
 }
 
-// Resolve a token to either an integer or a variable value
-int resolveValue(Process& p, const std::string& token) {
-    try {
-        return std::stoi(token);
-    }
-    catch (...) {
-
-    }
-
-    if (!p.variables.count(token)) {
-        p.variables[token] = 0;
-    }
-    return p.variables[token];
-}
-
 // === Instruction Implementations ===
 
 // Helper to parse string that might be decimal or hex (0x...)
@@ -122,6 +107,62 @@ int parseAddressOrValue(const std::string& token) {
     } catch (...) {
         return -1; // Indicator for failure
     }
+}
+
+// Helper to resolve a token to either an integer or a variable value
+bool getValueFromMemory(Process& p, const std::string& token, int& outVal) {
+    // 1. Try parsing as literal integer
+    try {
+        outVal = std::stoi(token);
+        return true; 
+    } catch (...) {}
+
+    // 2. Look up variable in Symbol Table
+    if (p.symbol_table.find(token) == p.symbol_table.end()) {
+        // Variable not found (runtime error in strict mode, or 0 in loose mode)
+        outVal = 0;
+        return true;
+    }
+
+    int addr = p.symbol_table[token];
+
+    // 3. Access Memory (Read)
+    // We assume 2-byte integers. We read the address. 
+    // (Simplification: we only read 1 word/int at that address)
+    if (!memoryManager->access(p.pid, addr, false, outVal)) {
+        return false; // Page Fault triggered
+    }
+
+    return true; // Success
+}
+
+// Helper to set a variable value in memory
+bool setValueToMemory(Process& p, const std::string& varName, int value) {
+    int addr;
+
+    // 1. Check if variable exists
+    if (p.symbol_table.find(varName) == p.symbol_table.end()) {
+        // Allocate new address in Page 0
+        addr = p.symbol_cursor;
+        p.symbol_table[varName] = addr;
+
+        // === FIX: Increment by 2 bytes (16-bit integer simulation) ===
+        // This ensures variables are stored at 0, 2, 4, etc.
+        p.symbol_cursor += 2;
+    }
+    else {
+        addr = p.symbol_table[varName];
+    }
+
+    // 2. Access Memory (Write)
+    // We attempt to write to the specific address.
+    // Note: logic implies we write to 'addr', and 'addr+1' is effectively "occupied" by this int.
+    int temp = value;
+    if (!memoryManager->access(p.pid, addr, true, temp)) {
+        return false; // Page Fault triggered
+    }
+
+    return true;
 }
 
 // Helper to clamp uint16
@@ -137,17 +178,12 @@ class DeclareInstruction : public Instruction {
 public:
     DeclareInstruction(const std::string& v, int value) : var(v), val(value) {}
     void execute(Process& p) override {
-        // Check Symbol Table Page (Address 0)
-        if (!memoryManager->isPageResident(p.pid, 0)) {
-            int dummy;
-            memoryManager->access(p.pid, 0, false, dummy); // Trigger load of Page 0
-            return;
+        // Helper returns 'true' only if memory write succeeded (Page was resident).
+        // If it returns 'false' (Page Fault), we exit WITHOUT incrementing pc.
+        // The scheduler will retry this exact instruction in the next tick.
+        if (setValueToMemory(p, var, clampUint16(val))) {
+            p.pc++;
         }
-
-        p.variables[var] = clampUint16(val);
-        int dummyVal = 0;
-        memoryManager->access(p.pid, 0, true, dummyVal);
-        p.pc++;
     }
     std::string toString() const override {
         return "DECLARE(" + var + ", " + std::to_string(val) + ")";
@@ -161,21 +197,17 @@ public:
         : target(t), op1(o1), op2(o2) {
     }
     void execute(Process& p) override {
-        if (!memoryManager->isPageResident(p.pid, 0)) {
-            int dummy;
-            memoryManager->access(p.pid, 0, false, dummy);
-            return;
+        int v1, v2;
+
+        if (!getValueFromMemory(p, op1, v1)) return;
+        if (!getValueFromMemory(p, op2, v2)) return; 
+
+        // 3. Write Result
+        int result = clampUint16(v1 + v2);
+        if (setValueToMemory(p, target, result)) {
+            p.pc++;
         }
-
-        int v1 = resolveValue(p, op1);
-        int v2 = resolveValue(p, op2);
-        p.variables[target] = clampUint16(v1 + v2);
-
-        int dummyVal = 0;
-        memoryManager->access(p.pid, 0, true, dummyVal);
-
-        p.pc++;
-    }
+    }       
     std::string toString() const override {
         return "ADD(" + target + ", " + op1 + ", " + op2 + ")";
     }
@@ -188,20 +220,14 @@ public:
         : target(t), op1(o1), op2(o2) {
     }
     void execute(Process& p) override {
-        if (!memoryManager->isPageResident(p.pid, 0)) {
-            int dummy;
-            memoryManager->access(p.pid, 0, false, dummy);
-            return;
+        int v1, v2;
+        if (!getValueFromMemory(p, op1, v1)) return;
+        if (!getValueFromMemory(p, op2, v2)) return;
+
+        int result = clampUint16(v1 - v2);
+        if (setValueToMemory(p, target, result)) {
+            p.pc++;
         }
-
-        int v1 = resolveValue(p, op1);
-        int v2 = resolveValue(p, op2);
-        p.variables[target] = clampUint16(v1 - v2);
-
-        int dummyVal = 0;
-        memoryManager->access(p.pid, 0, true, dummyVal);
-
-        p.pc++;
     }
     std::string toString() const override {
         return "SUBTRACT(" + target + ", " + op1 + ", " + op2 + ")";
@@ -215,25 +241,29 @@ public:
     void execute(Process& p) override {
         std::vector<std::string> parts = splitPrintExpr(expression);
         std::ostringstream out;
+        bool stall = false;
 
+        // We must resolve all parts. If ANY part causes a page fault, 
+        // we must abort the entire print and retry later.
         for (auto& part : parts) {
             if (isSingleQuoted(part)) {
                 out << unquoteSingle(part);
             }
             else {
-                try {
-                    int v = std::stoi(part);
-                    out << v;
+                int val;
+                if (!getValueFromMemory(p, part, val)) {
+                    stall = true;
+                    break; 
                 }
-                catch (...) {
-                    int v = resolveValue(p, part);
-                    out << v;
-                }
-            }
+                out << val;
         }
-        p.logs.push_back(out.str());
-        p.pc++;
     }
+
+    if (stall) return; // Page Fault happened, retry instruction next tick
+
+    p.logs.push_back(out.str());
+    p.pc++;
+}
     std::string toString() const override {
         return "PRINT(" + expression + ")";
     }
@@ -273,31 +303,21 @@ public:
     void execute(Process& p) override {
         int addr = parseAddressOrValue(addrStr);
         
-        // Resolve value (could be a variable or a literal)
-        int val = 0;
-        try {
-            val = std::stoi(valStr, nullptr, 0);
-        } catch (...) {
-            if (p.variables.count(valStr)) val = p.variables[valStr];
-        }
-        val = clampUint16(val);
+        // Resolve the value source (it might be a variable like 'x' or literal '10')
+        int valToWrite;
+        if (!getValueFromMemory(p, valStr, valToWrite)) return; // Page Fault on reading var
 
-        // 1. Bounds Check
+        valToWrite = clampUint16(valToWrite);
+
+        // Bounds check
         if (addr < 0 || addr >= p.memory_required) {
             p.state = ProcessState::MEMORY_VIOLATED;
             return;
         }
 
-        // 2. Paging Logic
-        if (!memoryManager->isPageResident(p.pid, addr)) {
-            int dummy = 0;
-            memoryManager->access(p.pid, addr, true, dummy); // Trigger load
-            return; // Retry next tick
-        }
-
-        // 3. Execution
-        if (memoryManager->access(p.pid, addr, true, val)) {
-            // Access successful, dirty bit handled in MemoryManager
+        // Write to absolute memory address
+        int dummy = valToWrite;
+        if (memoryManager->access(p.pid, addr, true, dummy)) {
             p.pc++;
         }
     }
@@ -316,28 +336,19 @@ public:
     void execute(Process& p) override {
         int addr = parseAddressOrValue(addrStr);
         
-        // 1. Bounds Check
+        // Bounds check
         if (addr < 0 || addr >= p.memory_required) {
             p.state = ProcessState::MEMORY_VIOLATED;
             return;
         }
 
-        // 2. Paging Logic (Check Residence)
-        if (!memoryManager->isPageResident(p.pid, addr)) {
-            
-            // Trigger the load logic (simulated IO delay)
-            int dummy;
-            memoryManager->access(p.pid, addr, false, dummy); 
-            
-            // Do NOT increment PC. Next tick will retry.
-            return; 
-        }
+        // Read from absolute memory address
+        int memVal;
+        if (!memoryManager->access(p.pid, addr, false, memVal)) return; // Page Fault
 
-        // 3. Execution (Resident)
-        int val = 0;
-        if (memoryManager->access(p.pid, addr, false, val)) {
-            p.variables[var] = clampUint16(val);
-            p.pc++; // Only increment on success
+        // Write to variable (in Page 0)
+        if (setValueToMemory(p, var, clampUint16(memVal))) {
+            p.pc++;
         }
     }
 
@@ -432,6 +443,12 @@ std::shared_ptr<Instruction> parseInstruction(const std::string& line) {
     static std::regex writeSpaceRegex(R"(WRITE\s+((?:0x[0-9a-fA-F]+|\d+))\s+([a-zA-Z0-9_]+))");
     if (std::regex_match(instr, match, writeSpaceRegex)) {
         return std::make_shared<WriteInstruction>(match[1], match[2]);
+    }
+
+    // SLEEP <duration>
+    static std::regex sleepSpaceRegex(R"(SLEEP\s+(\d+))");
+    if (std::regex_match(instr, match, sleepSpaceRegex)) {
+        return std::make_shared<SleepInstruction>(std::stoi(match[1]));
     }
 
     return nullptr;
@@ -1385,17 +1402,37 @@ void processSmiCommand() {
     case ProcessState::RUNNING: stateStr = "RUNNING"; break;
     case ProcessState::SLEEPING: stateStr = "SLEEPING"; break;
     case ProcessState::FINISHED: stateStr = "FINISHED"; break;
+    case ProcessState::MEMORY_VIOLATED: stateStr = "MEMORY_VIOLATED"; break;
     }
     std::cout << "State: " << stateStr << "\n";
 
     // Instruction progress
     std::cout << "Instruction progress: " << procSnapshot.pc << " / " << procSnapshot.instructions.size() << "\n";
 
-    // Display variables
-    if (!procSnapshot.variables.empty()) {
-        std::cout << "Variables:\n";
-        for (const auto& [var, val] : procSnapshot.variables)
-            std::cout << "  " << var << " = " << val << "\n";
+    // === Display Variables with Values from Memory ===
+    if (!procSnapshot.symbol_table.empty()) {
+        std::cout << "Variables (Stored in Page 0):\n";
+        for (const auto& [name, addr] : procSnapshot.symbol_table) {
+            std::cout << "  " << name << " @ Address " << addr;
+
+            // Check if the page containing this variable is currently in RAM
+            if (memoryManager->isPageResident(procSnapshot.pid, addr)) {
+                int val = 0;
+                // Attempt to read the value (this updates LRU but that is acceptable)
+                if (memoryManager->access(procSnapshot.pid, addr, false, val)) {
+                    std::cout << " = " << val;
+                }
+                else {
+                    std::cout << " = (Error reading)";
+                }
+            }
+            else {
+                // If the page is not in RAM, we show this tag. 
+                // This adds realism: you can't see the value because it's on the 'disk'.
+                std::cout << " = [Swapped Out]";
+            }
+            std::cout << "\n";
+        }
     }
     else {
         std::cout << "Variables: (none)\n";
@@ -1420,11 +1457,11 @@ void processSmiCommand() {
     std::cout << "Free Frames: " << memoryManager->getFreeFrameCount() << "\n";
     std::cout << "Page | Frame | Valid | Dirty | Last Accessed\n";
     for (const auto& [page, entry] : procSnapshot.page_table) {
-        std::cout << "  " << page << "  | " 
-                  << (entry.valid ? std::to_string(entry.frame_num) : "-") << "   | "
-                  << (entry.valid ? "Yes" : "No ") << "   | "
-                  << (entry.dirty ? "Yes" : "No ") << "   | "
-                  << entry.last_accessed << "\n";
+        std::cout << "  " << page << "  | "
+            << (entry.valid ? std::to_string(entry.frame_num) : "-") << "   | "
+            << (entry.valid ? "Yes" : "No ") << "   | "
+            << (entry.dirty ? "Yes" : "No ") << "   | "
+            << entry.last_accessed << "\n";
     }
 
     std::cout << "=====================\n\n";
