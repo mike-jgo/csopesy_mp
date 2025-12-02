@@ -1105,21 +1105,6 @@ void processSmiGlobal() {
         }
     }
 
-    std::deque<Process> snapshot;
-    size_t rrCursorSnapshot = 0;
-    {
-        std::lock_guard<std::mutex> lock(processTableMutex);
-        if (processTable.empty()) {
-            std::cout << "No processes created.\n";
-            return;
-        }
-        snapshot.assign(processTable.begin(), processTable.end());
-        rrCursorSnapshot = rrCursor;
-        if (!snapshot.empty()) {
-            rrCursorSnapshot %= snapshot.size();
-        }
-    }
-
     int totalCores = systemConfig.num_cpu;
     int runningCount = 0, finishedCount = 0, readyCount = 0, sleepingCount = 0;
 
@@ -1191,7 +1176,7 @@ void processSmiGlobal() {
     std::cout << "Used Memory:  " << used_mem << " bytes\n";
     std::cout << "Free Memory:  " << free_mem << " bytes\n";
     std::cout << "Memory Util:" << (used_mem / total_mem) * 100.f;
-    std::cout << "--------------------------------------------------------------------------\n";
+    std::cout << "\n--------------------------------------------------------------------------\n";
     std::cout << "Total Resident Memory (All Processes): "
         << totalResidentRAM << " bytes\n";
     std::cout << "--------------------------------------------------------------------------\n";
@@ -1258,8 +1243,6 @@ void inputLoop() {
                     << "  scheduler stop      - Stop automatic process creation\n"
                     << "  report-util         - Generate CPU report\n"
                     << "  report-trace        - Show execution trace log\n"
-                    << "  vmstat              - Show system performance\n"
-                    << "  process-smi         - Show process CPU and memory utilization\n"
                     << "  exit                - Quit program\n";
             }
             else if (cmd == "initialize") initializeCommand();
